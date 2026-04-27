@@ -32,10 +32,7 @@ app.UseGlobalExceptionMiddleware();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FarmEase API v1");
-    });
+    app.UseSwaggerUI();
 }
 
 // Serve static files (for images, etc.)
