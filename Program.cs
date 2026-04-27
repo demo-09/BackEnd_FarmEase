@@ -48,5 +48,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "FarmEase API v1");
+});
 app.Run();
