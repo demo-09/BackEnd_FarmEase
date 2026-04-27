@@ -13,4 +13,4 @@ WORKDIR /app
 COPY --from=build /app/out .
 
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "FarmEase.dll"]
+ENTRYPOINT ["dotnet", "backEnd.dll"]
