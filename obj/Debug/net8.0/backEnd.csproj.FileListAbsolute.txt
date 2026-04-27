@@ -171,3 +171,5 @@ C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\refint\b
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.pdb
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.genruntimeconfig.cache
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\ref\backEnd.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.sourcelink.json
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\backEnd.staticwebassets.runtime.json

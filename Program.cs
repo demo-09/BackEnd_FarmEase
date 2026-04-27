@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ Database (FIXED: now supports PostgreSQL / SQL Server)
+// ✅ Database
 builder.Services.AddDatabase(builder.Configuration);
 
 // ✅ Custom Services
@@ -19,10 +19,12 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 // ✅ Swagger
 builder.Services.AddSwaggerWithJwt();
 
-// ✅ CORS
-builder.Services.AddAngularCors();
+// ✅ CORS (FIXED: added configuration parameter)
+builder.Services.AddAngularCors(builder.Configuration);
 
 var app = builder.Build();
+
+// ─── Middleware ───────────────────────────
 
 // Global Exception Middleware
 app.UseGlobalExceptionMiddleware();
@@ -32,10 +34,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Serve static files (for images, etc.)
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
+// ✅ CORS (must be before auth)
 app.UseCors("AllowAngularApp");
 
 app.UseAuthentication();

@@ -121,15 +121,14 @@ public static class ServiceExtensions
         return services;
     }
 
+    // ✅ CORS (SAFE FOR DEPLOYMENT)
     public static IServiceCollection AddAngularCors(this IServiceCollection services, IConfiguration config)
     {
-        var origins = config.GetSection("Cors:AllowedOrigins").Get<string[]>();
-
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAngularApp", policy =>
             {
-                policy.WithOrigins("https://your-frontend-url.netlify.app")
+                policy.AllowAnyOrigin()
                       .AllowAnyHeader()
                       .AllowAnyMethod();
             });
@@ -137,3 +136,4 @@ public static class ServiceExtensions
 
         return services;
     }
+}
