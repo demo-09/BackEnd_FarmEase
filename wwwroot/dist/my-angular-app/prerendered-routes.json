@@ -1,0 +1,23 @@
+{
+  "routes": {
+    "/": {},
+    "/About": {},
+    "/AddProduct": {},
+    "/Admin": {},
+    "/Cart": {},
+    "/Chat": {},
+    "/Contact": {},
+    "/DataComponent": {},
+    "/HomePage": {},
+    "/Login": {},
+    "/News": {},
+    "/Orders": {},
+    "/Products": {},
+    "/Profile": {},
+    "/Signup": {},
+    "/Weather": {},
+    "/Wishlist": {},
+    "/ai": {},
+    "/order-detail": {}
+  }
+}

@@ -121,14 +121,15 @@ public static class ServiceExtensions
         return services;
     }
 
-    // ✅ CORS
-    public static IServiceCollection AddAngularCors(this IServiceCollection services)
+    public static IServiceCollection AddAngularCors(this IServiceCollection services, IConfiguration config)
     {
+        var origins = config.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAngularApp", policy =>
             {
-                policy.WithOrigins("http://localhost:4200", "http://localhost:4201")
+                policy.WithOrigins("https://your-frontend-url.netlify.app")
                       .AllowAnyHeader()
                       .AllowAnyMethod();
             });
@@ -136,4 +137,3 @@ public static class ServiceExtensions
 
         return services;
     }
-}
