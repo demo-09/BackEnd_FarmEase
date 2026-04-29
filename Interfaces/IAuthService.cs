@@ -8,6 +8,6 @@ public interface IAuthService
     Task<AuthResponseDto?> LoginAsync(LoginDto dto);
     Task<AuthResponseDto?> GoogleLoginAsync(GoogleLoginDto dto);
     
-    Task<string?> GenerateOtpAsync(SendOtpDto dto);
+    Task<string?> InitiateLoginAsync(InitiateLoginDto dto);
     Task<AuthResponseDto?> VerifyOtpLoginAsync(VerifyOtpDto dto);
 }

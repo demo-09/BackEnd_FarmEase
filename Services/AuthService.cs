@@ -148,16 +148,18 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<string?> GenerateOtpAsync(SendOtpDto dto)
+    public async Task<string?> InitiateLoginAsync(InitiateLoginDto dto)
     {
-        // For simplicity, checking if user exists by email or phone.
-        // Assuming GetByEmailAsync can be extended to check both, 
-        // or we just query by email since phone isn't unique indexed currently.
-        // Actually, let's allow generating OTP for any email/phone just for the prototype,
-        // or we can strictly check by email.
-        
-        // Since prototype "login with number and email", let's assume if it's an email, we find by email.
-        // We will just generate a 6 digit code.
+        // Check if user exists by email (or phone, if repository supported it)
+        var user = await _repo.GetByEmailAsync(dto.EmailOrPhone);
+
+        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        {
+            // Invalid credentials, don't generate OTP
+            return null;
+        }
+
+        // Generate a 6-digit code.
         var code = new Random().Next(100000, 999999).ToString();
         
         _otpStore[dto.EmailOrPhone] = code;
@@ -174,42 +176,25 @@ public class AuthService : IAuthService
                 // OTP matches! Clear it.
                 _otpStore.TryRemove(dto.EmailOrPhone, out _);
 
-                // Find user by email or phone. If doesn't exist, we should ideally register them.
-                // For this prototype, let's try getting by email first.
+                // Find user by email. We know they exist because we verified them in InitiateLoginAsync.
                 var user = await _repo.GetByEmailAsync(dto.EmailOrPhone);
 
-                if (user == null)
+                if (user != null)
                 {
-                    // If they logged in with OTP but don't exist, auto-register them like Google Login
-                    user = new User
+                    return new AuthResponseDto
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        FullName = "User " + dto.EmailOrPhone,
-                        Email = dto.EmailOrPhone.Contains("@") ? dto.EmailOrPhone : dto.EmailOrPhone + "@mock.com",
-                        PasswordHash = "",
-                        Role = "customer",
-                        Phone = dto.EmailOrPhone.Contains("@") ? "" : dto.EmailOrPhone,
-                        Address = "",
-                        BirthDate = "",
-                        Bio = "Registered via OTP",
-                        JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
+                        Token = _jwtHelper.GenerateToken(user),
+                        Id = user.Id,
+                        Email = user.Email,
+                        FullName = user.FullName,
+                        Role = user.Role,
+                        Phone = user.Phone,
+                        Address = user.Address,
+                        BirthDate = user.BirthDate,
+                        Bio = user.Bio,
+                        JoinedDate = user.JoinedDate
                     };
-                    await _repo.CreateAsync(user);
                 }
-
-                return new AuthResponseDto
-                {
-                    Token = _jwtHelper.GenerateToken(user),
-                    Id = user.Id,
-                    Email = user.Email,
-                    FullName = user.FullName,
-                    Role = user.Role,
-                    Phone = user.Phone,
-                    Address = user.Address,
-                    BirthDate = user.BirthDate,
-                    Bio = user.Bio,
-                    JoinedDate = user.JoinedDate
-                };
             }
         }
 

@@ -47,11 +47,12 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("send-otp")]
+    [HttpPost("initiate-login")]
     [AllowAnonymous]
-    public async Task<IActionResult> SendOtp([FromBody] SendOtpDto dto)
+    public async Task<IActionResult> InitiateLogin([FromBody] InitiateLoginDto dto)
     {
-        var code = await _authService.GenerateOtpAsync(dto);
+        var code = await _authService.InitiateLoginAsync(dto);
+        if (code == null) return Unauthorized(new { message = "Invalid credentials." });
         return Ok(new { message = "OTP generated successfully", mockOtp = code });
     }
 
