@@ -55,7 +55,16 @@ public class NotificationService : INotificationService
         };
         mailMessage.To.Add(toEmail);
 
-        await client.SendMailAsync(mailMessage);
+        try 
+        {
+            await client.SendMailAsync(mailMessage);
+            Console.WriteLine($"[EMAIL SUCCESS]: Sent to {toEmail}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[EMAIL ERROR]: Failed to send to {toEmail}. Error: {ex.Message}");
+            throw; // Re-throw to allow AuthService to catch it if needed
+        }
     }
 
     public async Task SendSmsAsync(string toNumber, string message)
@@ -72,12 +81,21 @@ public class NotificationService : INotificationService
             return;
         }
 
-        TwilioClient.Init(accountSid, authToken);
+        try 
+        {
+            TwilioClient.Init(accountSid, authToken);
 
-        await MessageResource.CreateAsync(
-            body: message,
-            from: new PhoneNumber(fromNumber),
-            to: new PhoneNumber(toNumber)
-        );
+            var result = await MessageResource.CreateAsync(
+                body: message,
+                from: new PhoneNumber(fromNumber),
+                to: new PhoneNumber(toNumber)
+            );
+            Console.WriteLine($"[SMS SUCCESS]: SID {result.Sid} sent to {toNumber}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SMS ERROR]: Failed to send to {toNumber}. Error: {ex.Message}");
+            throw;
+        }
     }
 }
