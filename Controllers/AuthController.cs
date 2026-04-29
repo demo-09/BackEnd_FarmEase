@@ -72,7 +72,7 @@ public class AuthController : ControllerBase
     {
         var code = await _authService.InitiateLoginAsync(dto);
         if (code == null) return Unauthorized(new { message = "Invalid credentials." });
-        return Ok(new { message = "OTP generated successfully" });
+        return Ok(new { message = "OTP generated successfully", mockOtp = code });
     }
 
     [HttpPost("verify-otp-login")]
