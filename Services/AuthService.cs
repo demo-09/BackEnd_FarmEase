@@ -71,6 +71,7 @@ public class AuthService : IAuthService
             Address = newUser.Address,
             BirthDate = newUser.BirthDate,
             Bio = newUser.Bio,
+            Avatar = newUser.Avatar,
             JoinedDate = newUser.JoinedDate
         };
     }
@@ -154,6 +155,7 @@ public class AuthService : IAuthService
                         Address = user.Address,
                         BirthDate = user.BirthDate,
                         Bio = user.Bio,
+                        Avatar = user.Avatar,
                         JoinedDate = user.JoinedDate
                     };
                 }
@@ -180,6 +182,7 @@ public class AuthService : IAuthService
             Address    = user.Address,
             BirthDate  = user.BirthDate,
             Bio        = user.Bio,
+            Avatar     = user.Avatar,
             JoinedDate = user.JoinedDate
         };
     }
@@ -314,6 +317,7 @@ public class AuthService : IAuthService
                         Address = user.Address,
                         BirthDate = user.BirthDate,
                         Bio = user.Bio,
+                        Avatar = user.Avatar,
                         JoinedDate = user.JoinedDate
                     };
                 }

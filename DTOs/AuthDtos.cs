@@ -35,6 +35,7 @@ public class AuthResponseDto
     public string? Address { get; set; }
     public string? BirthDate { get; set; }
     public string? Bio { get; set; }
+    public string? Avatar { get; set; }
     public required string JoinedDate { get; set; }
 }
 
