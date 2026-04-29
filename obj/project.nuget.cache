@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "vQTZNgW+JKGb3hhCe/wj+j4ABMgFIhsm1pAsnxM9r22UR5JtH7vDN2/1548Qjltyjw/+W4Ra1PSovuancbAkdQ==",
+  "dgSpecHash": "wJePInR3dXI0XffP72ur8+NcuXYDxSmJzFX1dM3bnrLuMMw+pBfi/0bw1IFN+Cr7uYq0rN+Vqa45OkZ2S3vKlA==",
   "success": true,
   "projectFilePath": "C:\\Users\\pcit78\\Desktop\\farmEase-main\\BackEnd_FarmEase\\backEnd.csproj",
   "expectedPackageFiles": [
@@ -67,7 +67,7 @@
     "C:\\Users\\pcit78\\.nuget\\packages\\microsoft.openapi\\1.4.3\\microsoft.openapi.1.4.3.nupkg.sha512",
     "C:\\Users\\pcit78\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\newtonsoft.json\\11.0.2\\newtonsoft.json.11.0.2.nupkg.sha512",
-    "C:\\Users\\pcit78\\.nuget\\packages\\npgsql\\8.0.3\\npgsql.8.0.3.nupkg.sha512",
+    "C:\\Users\\pcit78\\.nuget\\packages\\npgsql\\7.0.6\\npgsql.7.0.6.nupkg.sha512",
     "C:\\Users\\pcit78\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\7.0.11\\npgsql.entityframeworkcore.postgresql.7.0.11.nupkg.sha512",
     "C:\\Users\\pcit78\\.nuget\\packages\\swashbuckle.aspnetcore\\6.5.0\\swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
     "C:\\Users\\pcit78\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.5.0\\swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
