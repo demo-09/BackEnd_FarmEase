@@ -9,10 +9,12 @@ namespace backEnd.Services;
 public class OrderService : IOrderService
 {
     private readonly AppDbContext _context;
+    private readonly IActivityService _activityService;
 
-    public OrderService(AppDbContext context)
+    public OrderService(AppDbContext context, IActivityService activityService)
     {
         _context = context;
+        _activityService = activityService;
     }
 
     public async Task<IEnumerable<OrderDto>> GetUserOrdersAsync(string userId)
@@ -95,6 +97,12 @@ public class OrderService : IOrderService
         _context.Orders.Add(order);
         _context.CartItems.RemoveRange(cartItems); // Empty cart after placing order
         await _context.SaveChangesAsync();
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            await _activityService.LogActivityAsync("Order", $"New order placed from cart: ₹{order.TotalAmount}", user.Email, user.FullName);
+        }
 
         return new OrderDto
         {
