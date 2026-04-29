@@ -6,10 +6,10 @@ public class RegisterDto
     public required string Email { get; set; }
     public required string Password { get; set; }
     public required string Role { get; set; }
-    public required string Phone { get; set; }
-    public required string Address { get; set; }
-    public required string BirthDate { get; set; }
-    public required string Bio { get; set; }// "admin", "farmer", "customer"
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
+    public string? BirthDate { get; set; }
+    public string? Bio { get; set; }
 }
 
 public class LoginDto
@@ -31,10 +31,10 @@ public class AuthResponseDto
     public required string Email { get; set; }
     public required string FullName { get; set; }
     public required string Role { get; set; }
-    public required string Phone { get; set; }
-    public required string Address { get; set; }
-    public required string BirthDate { get; set; }
-    public required string Bio { get; set; }
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
+    public string? BirthDate { get; set; }
+    public string? Bio { get; set; }
     public required string JoinedDate { get; set; }
 }
 
