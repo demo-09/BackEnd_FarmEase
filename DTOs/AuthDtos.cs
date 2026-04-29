@@ -37,3 +37,14 @@ public class AuthResponseDto
     public required string Bio { get; set; }
     public required string JoinedDate { get; set; }
 }
+
+public class SendOtpDto
+{
+    public required string EmailOrPhone { get; set; }
+}
+
+public class VerifyOtpDto
+{
+    public required string EmailOrPhone { get; set; }
+    public required string OtpCode { get; set; }
+}

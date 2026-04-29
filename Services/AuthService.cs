@@ -5,6 +5,7 @@ using backEnd.Helpers;
 using backEnd.Repositories;
 using AutoMapper;
 using Google.Apis.Auth;
+using System.Collections.Concurrent;
 
 namespace backEnd.Services;
 
@@ -13,6 +14,9 @@ public class AuthService : IAuthService
     private readonly IAuthRepository _repo;
     private readonly JwtHelper _jwtHelper;
     private readonly IMapper _mapper;
+
+    // Static dictionary to mock OTP storage (Email/Phone -> OTP)
+    private static readonly ConcurrentDictionary<string, string> _otpStore = new();
 
     public AuthService(IAuthRepository repo, JwtHelper jwtHelper, IMapper mapper)
     {
@@ -142,5 +146,73 @@ public class AuthService : IAuthService
             // Token is invalid
             return null;
         }
+    }
+
+    public async Task<string?> GenerateOtpAsync(SendOtpDto dto)
+    {
+        // For simplicity, checking if user exists by email or phone.
+        // Assuming GetByEmailAsync can be extended to check both, 
+        // or we just query by email since phone isn't unique indexed currently.
+        // Actually, let's allow generating OTP for any email/phone just for the prototype,
+        // or we can strictly check by email.
+        
+        // Since prototype "login with number and email", let's assume if it's an email, we find by email.
+        // We will just generate a 6 digit code.
+        var code = new Random().Next(100000, 999999).ToString();
+        
+        _otpStore[dto.EmailOrPhone] = code;
+
+        return code;
+    }
+
+    public async Task<AuthResponseDto?> VerifyOtpLoginAsync(VerifyOtpDto dto)
+    {
+        if (_otpStore.TryGetValue(dto.EmailOrPhone, out var storedCode))
+        {
+            if (storedCode == dto.OtpCode)
+            {
+                // OTP matches! Clear it.
+                _otpStore.TryRemove(dto.EmailOrPhone, out _);
+
+                // Find user by email or phone. If doesn't exist, we should ideally register them.
+                // For this prototype, let's try getting by email first.
+                var user = await _repo.GetByEmailAsync(dto.EmailOrPhone);
+
+                if (user == null)
+                {
+                    // If they logged in with OTP but don't exist, auto-register them like Google Login
+                    user = new User
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        FullName = "User " + dto.EmailOrPhone,
+                        Email = dto.EmailOrPhone.Contains("@") ? dto.EmailOrPhone : dto.EmailOrPhone + "@mock.com",
+                        PasswordHash = "",
+                        Role = "customer",
+                        Phone = dto.EmailOrPhone.Contains("@") ? "" : dto.EmailOrPhone,
+                        Address = "",
+                        BirthDate = "",
+                        Bio = "Registered via OTP",
+                        JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
+                    };
+                    await _repo.CreateAsync(user);
+                }
+
+                return new AuthResponseDto
+                {
+                    Token = _jwtHelper.GenerateToken(user),
+                    Id = user.Id,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    Role = user.Role,
+                    Phone = user.Phone,
+                    Address = user.Address,
+                    BirthDate = user.BirthDate,
+                    Bio = user.Bio,
+                    JoinedDate = user.JoinedDate
+                };
+            }
+        }
+
+        return null;
     }
 }

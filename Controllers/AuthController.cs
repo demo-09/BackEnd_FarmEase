@@ -46,4 +46,22 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpPost("send-otp")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SendOtp([FromBody] SendOtpDto dto)
+    {
+        var code = await _authService.GenerateOtpAsync(dto);
+        return Ok(new { message = "OTP generated successfully", mockOtp = code });
+    }
+
+    [HttpPost("verify-otp-login")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyOtpLogin([FromBody] VerifyOtpDto dto)
+    {
+        var result = await _authService.VerifyOtpLoginAsync(dto);
+        if (result == null) return Unauthorized(new { message = "Invalid OTP." });
+
+        return Ok(result);
+    }
 }
