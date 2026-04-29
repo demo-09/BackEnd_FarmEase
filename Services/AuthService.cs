@@ -90,16 +90,24 @@ public class AuthService : IAuthService
         _otpStore[dto.Email] = code;
 
         // Send OTP
-        if (dto.Email.Contains("@"))
+        try 
         {
-            await _notificationService.SendEmailAsync(
-                dto.Email, 
-                "Verify Your FarmEase Account", 
-                $"Your FarmEase verification code is: <b>{code}</b>. It is valid for 5 minutes.");
+            if (dto.Email.Contains("@"))
+            {
+                await _notificationService.SendEmailAsync(
+                    dto.Email, 
+                    "Verify Your FarmEase Account", 
+                    $"Your FarmEase verification code is: <b>{code}</b>. It is valid for 5 minutes.");
+            }
+            else
+            {
+                await _notificationService.SendSmsAsync(dto.Email, $"Your FarmEase verification code is: {code}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _notificationService.SendSmsAsync(dto.Email, $"Your FarmEase verification code is: {code}");
+            // Log the error but don't crash - allow the user to see the mock OTP in console for now
+            Console.WriteLine($"NOTIFICATION ERROR: {ex.Message}");
         }
 
         return code;
@@ -256,16 +264,24 @@ public class AuthService : IAuthService
         _otpStore[dto.EmailOrPhone] = code;
 
         // Send OTP
-        if (dto.EmailOrPhone.Contains("@"))
+        try 
         {
-            await _notificationService.SendEmailAsync(
-                dto.EmailOrPhone, 
-                "Your FarmEase Login OTP", 
-                $"Your OTP for FarmEase is: <b>{code}</b>. It is valid for 5 minutes.");
+            if (dto.EmailOrPhone.Contains("@"))
+            {
+                await _notificationService.SendEmailAsync(
+                    dto.EmailOrPhone, 
+                    "Your FarmEase Login OTP", 
+                    $"Your OTP for FarmEase is: <b>{code}</b>. It is valid for 5 minutes.");
+            }
+            else
+            {
+                await _notificationService.SendSmsAsync(dto.EmailOrPhone, $"Your FarmEase OTP is: {code}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _notificationService.SendSmsAsync(dto.EmailOrPhone, $"Your FarmEase OTP is: {code}");
+            // Log error but continue so the API doesn't return 500
+            Console.WriteLine($"NOTIFICATION ERROR: {ex.Message}");
         }
 
         return code;
