@@ -117,6 +117,7 @@ public static class ServiceExtensions
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IMessagesService, MessagesService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IActivityService, ActivityService>();
 
         return services;
     }

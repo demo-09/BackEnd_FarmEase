@@ -8,4 +8,5 @@ public interface IOrderService
     Task<OrderDto?> GetOrderByIdAsync(long orderId, string userId);
     Task<OrderDto> CreateOrderFromCartAsync(string userId);
     Task<OrderDto> CreateOrderDirectlyAsync(string userId, List<AddToCartDto> items);
+    Task<IEnumerable<OrderDto>> GetAllOrdersAsync();
 }

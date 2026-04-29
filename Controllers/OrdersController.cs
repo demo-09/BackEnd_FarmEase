@@ -55,4 +55,12 @@ public class OrdersController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpGet("all")]
+    [Authorize(Roles = "admin,Admin")]
+    public async Task<IActionResult> GetOrdersAdmin()
+    {
+        var orders = await _orderService.GetAllOrdersAsync();
+        return Ok(orders);
+    }
 }

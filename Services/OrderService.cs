@@ -155,4 +155,29 @@ public class OrderService : IOrderService
             }).ToList()
         };
     }
+
+    public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
+    {
+        var orders = await _context.Orders
+            .Include(o => o.Items)
+            .OrderByDescending(o => o.OrderDate)
+            .ToListAsync();
+
+        return orders.Select(o => new OrderDto
+        {
+            Id = o.Id,
+            TotalAmount = o.TotalAmount,
+            OrderDate = o.OrderDate,
+            Status = o.Status,
+            Items = o.Items.Select(i => new OrderItemDto
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                ProductName = i.ProductName,
+                Price = i.Price,
+                Quantity = i.Quantity,
+                ImageUrl = i.ImageUrl
+            }).ToList()
+        });
+    }
 }

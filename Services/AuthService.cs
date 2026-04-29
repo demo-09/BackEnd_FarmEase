@@ -15,6 +15,7 @@ public class AuthService : IAuthService
     private readonly JwtHelper _jwtHelper;
     private readonly IMapper _mapper;
     private readonly INotificationService _notificationService;
+    private readonly IActivityService _activityService;
 
     // Static dictionary to mock OTP storage (Email/Phone -> OTP)
     private static readonly ConcurrentDictionary<string, string> _otpStore = new();
@@ -22,12 +23,13 @@ public class AuthService : IAuthService
     // Static dictionary to cache unverified users during signup (Email -> RegisterDto)
     private static readonly ConcurrentDictionary<string, RegisterDto> _unverifiedUsers = new();
 
-    public AuthService(IAuthRepository repo, JwtHelper jwtHelper, IMapper mapper, INotificationService notificationService)
+    public AuthService(IAuthRepository repo, JwtHelper jwtHelper, IMapper mapper, INotificationService notificationService, IActivityService activityService)
     {
         _repo      = repo;
         _jwtHelper = jwtHelper;
         _mapper    = mapper;
         _notificationService = notificationService;
+        _activityService = activityService;
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
@@ -130,6 +132,8 @@ public class AuthService : IAuthService
 
                     await _repo.CreateAsync(user);
 
+                    await _activityService.LogActivityAsync("Signup", $"New user registered: {user.FullName} ({user.Role})", user.Email, user.FullName);
+
                     var token = _jwtHelper.GenerateToken(user);
                     return new AuthResponseDto
                     {
@@ -207,6 +211,11 @@ public class AuthService : IAuthService
                 };
 
                 await _repo.CreateAsync(user);
+                await _activityService.LogActivityAsync("Signup", $"User signed up via Google: {user.FullName}", user.Email, user.FullName);
+            }
+            else
+            {
+                await _activityService.LogActivityAsync("Login", $"User logged in via Google: {user.FullName}", user.Email, user.FullName);
             }
 
             return new AuthResponseDto
@@ -276,6 +285,8 @@ public class AuthService : IAuthService
 
                 if (user != null)
                 {
+                    await _activityService.LogActivityAsync("Login", $"User logged in via OTP: {user.FullName}", user.Email, user.FullName);
+
                     return new AuthResponseDto
                     {
                         Token = _jwtHelper.GenerateToken(user),
