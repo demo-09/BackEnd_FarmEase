@@ -4,6 +4,7 @@ using backEnd.DTOs;
 using backEnd.Helpers;
 using backEnd.Repositories;
 using AutoMapper;
+using Google.Apis.Auth;
 
 namespace backEnd.Services;
 
@@ -83,5 +84,63 @@ public class AuthService : IAuthService
             Bio        = user.Bio,
             JoinedDate = user.JoinedDate
         };
+    }
+
+    public async Task<AuthResponseDto?> GoogleLoginAsync(GoogleLoginDto dto)
+    {
+        try
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { "360775516641-oeppopoi7lbfues9mfnvcreciuin7u97.apps.googleusercontent.com" }
+            };
+
+            var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            
+            var user = await _repo.GetByEmailAsync(payload.Email);
+
+            if (user == null)
+            {
+                // Register the user
+                var allowedRoles = new[] { "farmer", "customer" };
+                var role = allowedRoles.Contains(dto.Role.ToLower()) ? dto.Role.ToLower() : "customer";
+
+                user = new User
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FullName = payload.Name ?? payload.Email,
+                    Email = payload.Email,
+                    PasswordHash = "", // Empty password for Google users
+                    Role = role,
+                    Phone = "",
+                    Address = "",
+                    BirthDate = "",
+                    Bio = "Registered via Google",
+                    Avatar = payload.Picture,
+                    JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
+                };
+
+                await _repo.CreateAsync(user);
+            }
+
+            return new AuthResponseDto
+            {
+                Token      = _jwtHelper.GenerateToken(user),
+                Id         = user.Id,
+                Email      = user.Email,
+                FullName   = user.FullName,
+                Role       = user.Role,
+                Phone      = user.Phone,
+                Address    = user.Address,
+                BirthDate  = user.BirthDate,
+                Bio        = user.Bio,
+                JoinedDate = user.JoinedDate
+            };
+        }
+        catch (InvalidJwtException)
+        {
+            // Token is invalid
+            return null;
+        }
     }
 }
