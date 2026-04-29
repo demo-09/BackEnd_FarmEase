@@ -101,8 +101,7 @@ public static class ServiceExtensions
     // ✅ Services + Repositories
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // AutoMapper
-        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        services.AddAutoMapper(typeof(Program));
 
         services.AddScoped<JwtHelper>();
 

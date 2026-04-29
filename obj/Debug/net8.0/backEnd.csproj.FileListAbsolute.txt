@@ -134,7 +134,13 @@ C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsof
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Design.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Extensions.DependencyModel.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
@@ -143,6 +149,7 @@ C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsof
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.OpenApi.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Mono.TextTemplating.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Npgsql.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
@@ -150,6 +157,7 @@ C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Swashbuc
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\System.CodeDom.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.csproj.AssemblyReference.cache
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.AssemblyInfoInputs.cache
@@ -157,6 +165,7 @@ C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.csproj.CoreCompileInputs.cache
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.sourcelink.json
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\staticwebassets\msbuild.backEnd.Microsoft.AspNetCore.StaticWebAssets.props
@@ -171,5 +180,3 @@ C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\refint\b
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.pdb
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.genruntimeconfig.cache
 C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\ref\backEnd.dll
-C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.sourcelink.json
-C:\Users\pcit78\Desktop\farmEase-main\BackEnd_FarmEase\bin\Debug\net8.0\backEnd.staticwebassets.runtime.json

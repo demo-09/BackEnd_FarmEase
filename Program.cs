@@ -18,9 +18,12 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // ✅ Swagger
 builder.Services.AddSwaggerWithJwt();
-
 // ✅ CORS (FIXED: added configuration parameter)
 builder.Services.AddAngularCors(builder.Configuration);
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+});
 
 var app = builder.Build();
 
@@ -38,7 +41,7 @@ if (app.Environment.IsDevelopment())
 // Serve static files (for images, etc.)
 app.UseDefaultFiles();
 app.UseStaticFiles();
-
+app.MapHub<ChatHub>("/chatHub");
 app.UseHttpsRedirection();
 
 // ✅ CORS (must be before auth)
@@ -50,6 +53,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint();
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "FarmEase API v1");
 });
 app.Run();
