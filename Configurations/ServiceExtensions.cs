@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -116,6 +116,7 @@ public static class ServiceExtensions
         services.AddScoped<IWishlistService, WishlistService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IMessagesService, MessagesService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

@@ -14,15 +14,20 @@ public class AuthService : IAuthService
     private readonly IAuthRepository _repo;
     private readonly JwtHelper _jwtHelper;
     private readonly IMapper _mapper;
+    private readonly INotificationService _notificationService;
 
     // Static dictionary to mock OTP storage (Email/Phone -> OTP)
     private static readonly ConcurrentDictionary<string, string> _otpStore = new();
+    
+    // Static dictionary to cache unverified users during signup (Email -> RegisterDto)
+    private static readonly ConcurrentDictionary<string, RegisterDto> _unverifiedUsers = new();
 
-    public AuthService(IAuthRepository repo, JwtHelper jwtHelper, IMapper mapper)
+    public AuthService(IAuthRepository repo, JwtHelper jwtHelper, IMapper mapper, INotificationService notificationService)
     {
         _repo      = repo;
         _jwtHelper = jwtHelper;
         _mapper    = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
@@ -66,6 +71,83 @@ public class AuthService : IAuthService
             Bio = newUser.Bio,
             JoinedDate = newUser.JoinedDate
         };
+    }
+
+    public async Task<string?> InitiateRegistrationAsync(RegisterDto dto)
+    {
+        if (await _repo.EmailExistsAsync(dto.Email))
+        {
+            return null; // Email already in use
+        }
+
+        // Cache the registration info
+        _unverifiedUsers[dto.Email] = dto;
+
+        // Generate a 6-digit code.
+        var code = new Random().Next(100000, 999999).ToString();
+        _otpStore[dto.Email] = code;
+
+        // Send OTP
+        if (dto.Email.Contains("@"))
+        {
+            await _notificationService.SendEmailAsync(
+                dto.Email, 
+                "Verify Your FarmEase Account", 
+                $"Your FarmEase verification code is: <b>{code}</b>. It is valid for 5 minutes.");
+        }
+        else
+        {
+            await _notificationService.SendSmsAsync(dto.Email, $"Your FarmEase verification code is: {code}");
+        }
+
+        return code;
+    }
+
+    public async Task<AuthResponseDto?> VerifyOtpRegistrationAsync(VerifyOtpDto dto)
+    {
+        if (_otpStore.TryGetValue(dto.EmailOrPhone, out var storedCode))
+        {
+            if (storedCode == dto.OtpCode)
+            {
+                // OTP matches! Clear it.
+                _otpStore.TryRemove(dto.EmailOrPhone, out _);
+
+                // Retrieve the cached registration info
+                if (_unverifiedUsers.TryGetValue(dto.EmailOrPhone, out var registerDto))
+                {
+                    _unverifiedUsers.TryRemove(dto.EmailOrPhone, out _);
+
+                    // Create the user in the database
+                    var user = new User
+                    {
+                        FullName = registerDto.FullName,
+                        Email = registerDto.Email,
+                        Phone = registerDto.Phone,
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
+                        Role = registerDto.Role ?? "customer",
+                        JoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd")
+                    };
+
+                    await _repo.CreateAsync(user);
+
+                    var token = _jwtHelper.GenerateToken(user);
+                    return new AuthResponseDto
+                    {
+                        Token = token,
+                        Id = user.Id,
+                        Email = user.Email,
+                        FullName = user.FullName,
+                        Role = user.Role,
+                        Phone = user.Phone,
+                        Address = user.Address,
+                        BirthDate = user.BirthDate,
+                        Bio = user.Bio,
+                        JoinedDate = user.JoinedDate
+                    };
+                }
+            }
+        }
+        return null;
     }
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
@@ -163,6 +245,19 @@ public class AuthService : IAuthService
         var code = new Random().Next(100000, 999999).ToString();
         
         _otpStore[dto.EmailOrPhone] = code;
+
+        // Send OTP
+        if (dto.EmailOrPhone.Contains("@"))
+        {
+            await _notificationService.SendEmailAsync(
+                dto.EmailOrPhone, 
+                "Your FarmEase Login OTP", 
+                $"Your OTP for FarmEase is: <b>{code}</b>. It is valid for 5 minutes.");
+        }
+        else
+        {
+            await _notificationService.SendSmsAsync(dto.EmailOrPhone, $"Your FarmEase OTP is: {code}");
+        }
 
         return code;
     }

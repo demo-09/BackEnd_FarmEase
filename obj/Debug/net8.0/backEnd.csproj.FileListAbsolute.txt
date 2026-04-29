@@ -249,3 +249,5 @@ C:\Users\karan\OneDrive\Desktop\all projects\farmEase\BackEnd_FarmEase\obj\Debug
 C:\Users\karan\OneDrive\Desktop\all projects\farmEase\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.pdb
 C:\Users\karan\OneDrive\Desktop\all projects\farmEase\BackEnd_FarmEase\obj\Debug\net8.0\backEnd.genruntimeconfig.cache
 C:\Users\karan\OneDrive\Desktop\all projects\farmEase\BackEnd_FarmEase\obj\Debug\net8.0\ref\backEnd.dll
+C:\Users\karan\OneDrive\Desktop\all projects\farmEase\BackEnd_FarmEase\bin\Debug\net8.0\Microsoft.Bcl.Memory.dll
+C:\Users\karan\OneDrive\Desktop\all projects\farmEase\BackEnd_FarmEase\bin\Debug\net8.0\Twilio.dll
