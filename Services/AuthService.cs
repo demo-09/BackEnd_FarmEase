@@ -150,8 +150,8 @@ public class AuthService : IAuthService
 
     public async Task<string?> InitiateLoginAsync(InitiateLoginDto dto)
     {
-        // Check if user exists by email (or phone, if repository supported it)
-        var user = await _repo.GetByEmailAsync(dto.EmailOrPhone);
+        // Check if user exists by email or phone
+        var user = await _repo.GetByEmailOrPhoneAsync(dto.EmailOrPhone);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
         {
@@ -176,8 +176,8 @@ public class AuthService : IAuthService
                 // OTP matches! Clear it.
                 _otpStore.TryRemove(dto.EmailOrPhone, out _);
 
-                // Find user by email. We know they exist because we verified them in InitiateLoginAsync.
-                var user = await _repo.GetByEmailAsync(dto.EmailOrPhone);
+                // Find user by email or phone. We know they exist because we verified them in InitiateLoginAsync.
+                var user = await _repo.GetByEmailOrPhoneAsync(dto.EmailOrPhone);
 
                 if (user != null)
                 {
