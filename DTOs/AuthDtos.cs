@@ -25,10 +25,6 @@ public class GoogleLoginDto
 {
     public required string IdToken { get; set; }
     public string Role { get; set; } = "customer";
-    public string Phone { get; set; }
-    public string Address { get; set; }
-    public string BirthDate { get; set; }
-    public string Bio { get; set; }
     public string Avatar { get; set; }
 
 }
