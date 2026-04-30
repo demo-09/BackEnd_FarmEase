@@ -25,7 +25,7 @@ public class GoogleLoginDto
 {
     public required string IdToken { get; set; }
     public string Role { get; set; } = "customer";
-    public string Avatar { get; set; }
+    public string? Avatar { get; set; }
 
 }
 

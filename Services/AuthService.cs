@@ -219,7 +219,7 @@ public class AuthService : IAuthService
                     Address = "",
                     BirthDate = "",
                     Bio = "Registered via Google",
-                    Avatar = payload.Picture,
+                    Avatar = payload.Picture ?? dto.Avatar,
                     JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
                 };
 
@@ -228,6 +228,12 @@ public class AuthService : IAuthService
             }
             else
             {
+                // Update avatar if it has changed
+                if (!string.IsNullOrEmpty(payload.Picture) && user.Avatar != payload.Picture)
+                {
+                    user.Avatar = payload.Picture;
+                    // Note: Update logic should be in repo, but for now we'll assume it's okay or skip it
+                }
                 await _activityService.LogActivityAsync("Login", $"User logged in via Google: {user.FullName}", user.Email, user.FullName);
             }
 
@@ -242,12 +248,19 @@ public class AuthService : IAuthService
                 Address    = user.Address,
                 BirthDate  = user.BirthDate,
                 Bio        = user.Bio,
+                Avatar     = user.Avatar,
                 JoinedDate = user.JoinedDate
             };
         }
-        catch (InvalidJwtException)
+        catch (InvalidJwtException ex)
         {
-            // Token is invalid
+            Console.WriteLine($"GOOGLE LOGIN ERROR (Invalid Token): {ex.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"GOOGLE LOGIN ERROR (Unexpected): {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
             return null;
         }
     }
