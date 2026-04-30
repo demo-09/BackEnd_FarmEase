@@ -189,7 +189,7 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthResponseDto?> GoogleLoginAsync(RegisterDto dto)
+    public async Task<AuthResponseDto?> GoogleLoginAsync(GoogleLoginDto dto)
     {
         try
         {
@@ -213,11 +213,12 @@ public class AuthService : IAuthService
                     Id = Guid.NewGuid().ToString(),
                     FullName = payload.Name ?? payload.Email,
                     Email = payload.Email,
+                    PasswordHash = "", // Empty password for Google users
                     Role = role,
                     Phone = "",
                     Address = "",
                     BirthDate = "",
-                    Bio = "Registered via Google ????",
+                    Bio = "Registered via Google",
                     Avatar = payload.Picture,
                     JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
                 };
