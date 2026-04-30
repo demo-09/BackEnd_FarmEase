@@ -48,8 +48,7 @@ public class AuthService : IAuthService
             Email = dto.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Role = role,
-
-            // ? FIXED (Important)
+            Avatar = dto.Avatar,
             Phone = dto.Phone,
             Address = dto.Address,
             BirthDate = dto.BirthDate,
@@ -136,6 +135,9 @@ public class AuthService : IAuthService
                         Phone = registerDto.Phone,
                         PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
                         Role = registerDto.Role ?? "customer",
+                        Avatar = registerDto.Avatar,
+                        Bio = registerDto.Bio,
+                        Address = registerDto.Address,
                         JoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd")
                     };
 
