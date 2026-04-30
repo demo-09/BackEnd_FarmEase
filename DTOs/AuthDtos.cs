@@ -9,7 +9,10 @@ public class RegisterDto
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public string? BirthDate { get; set; }
-    public string? Bio { get; set; }
+    public string Bio { get; set; } = string.Empty;
+    public string JoinedDate { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd");
+    public string? Avatar { get; set; }
+
 }
 
 public class LoginDto
