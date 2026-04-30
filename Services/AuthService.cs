@@ -217,7 +217,7 @@ public class AuthService : IAuthService
                     Phone = "",
                     Address = "",
                     BirthDate = "",
-                    Bio = "Registered via Google ??",
+                    Bio = "Registered via Google ????",
                     Avatar = payload.Picture,
                     JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
                 };
