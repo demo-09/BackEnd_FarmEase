@@ -41,6 +41,7 @@ public class MachineryService : IMachineryService
         
         // Notify Hub
         await _stockHub.Clients.All.SendAsync("ReceiveAbsoluteStock", created.Id, created.Quantity, "Machinery");
+        await _stockHub.Clients.All.SendAsync("ReceiveProductUpdate", created, "Machinery");
         
         return created;
     }
@@ -64,6 +65,7 @@ public class MachineryService : IMachineryService
         
         // Notify Hub
         await _stockHub.Clients.All.SendAsync("ReceiveAbsoluteStock", existing.Id, existing.Quantity, "Machinery");
+        await _stockHub.Clients.All.SendAsync("ReceiveProductUpdate", existing, "Machinery");
         
         return _mapper.Map<MachineryDto>(existing);
     }

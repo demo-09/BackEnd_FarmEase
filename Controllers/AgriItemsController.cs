@@ -56,6 +56,7 @@ public class AgriItemsController : ControllerBase
 
         // Notify Hub
         await _stockHub.Clients.All.SendAsync("ReceiveAbsoluteStock", item.Id, item.Quantity, "AgriItem");
+        await _stockHub.Clients.All.SendAsync("ReceiveProductUpdate", item, "AgriItem");
 
         return CreatedAtAction(nameof(GetAgriItems), new { id = item.Id }, item);
     }
@@ -81,6 +82,7 @@ public class AgriItemsController : ControllerBase
 
         // Notify Hub
         await _stockHub.Clients.All.SendAsync("ReceiveAbsoluteStock", existing.Id, existing.Quantity, "AgriItem");
+        await _stockHub.Clients.All.SendAsync("ReceiveProductUpdate", existing, "AgriItem");
 
         return NoContent();
     }

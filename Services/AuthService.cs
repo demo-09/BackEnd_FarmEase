@@ -193,34 +193,36 @@ public class AuthService : IAuthService
     {
         try
         {
+            Console.WriteLine("[GOOGLE AUTH]: Validating token...");
             var settings = new GoogleJsonWebSignature.ValidationSettings
             {
                 Audience = new[] { "360775516641-oeppopoi7lbfues9mfnvcreciuin7u97.apps.googleusercontent.com" }
             };
 
             var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            Console.WriteLine($"[GOOGLE AUTH]: Token valid for {payload.Email}");
             
             var user = await _repo.GetByEmailAsync(payload.Email);
 
             if (user == null)
             {
+                Console.WriteLine($"[GOOGLE AUTH]: Creating new user for {payload.Email}");
                 // Register the user
                 var allowedRoles = new[] { "farmer", "customer" };
-                var role = allowedRoles.Contains(dto.Role.ToLower()) ? dto.Role.ToLower() : "customer";
+                var role = allowedRoles.Contains(dto.Role?.ToLower()) ? dto.Role.ToLower() : "customer";
 
                 user = new User
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    FullName = payload.Name ?? payload.Email,
+                    FullName = payload.Name ?? payload.GivenName ?? payload.Email,
                     Email = payload.Email,
-                    PasswordHash = "", // Empty password for Google users
+                    PasswordHash = "GOOGLE_USER_" + Guid.NewGuid().ToString("N"), // Safe non-empty hash
                     Role = role,
                     Phone = "",
                     Address = "",
                     BirthDate = "",
                     Bio = "Registered via Google",
-                    Avatar = payload.Picture ?? dto.Avatar,
-                    JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
+                    Avatar = payload.Picture ?? dto.Avatar ?? $"https://ui-avatars.com/api/?name={payload.Name}&background=random",
+                    JoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd")
                 };
 
                 await _repo.CreateAsync(user);
@@ -228,12 +230,7 @@ public class AuthService : IAuthService
             }
             else
             {
-                // Update avatar if it has changed
-                if (!string.IsNullOrEmpty(payload.Picture) && user.Avatar != payload.Picture)
-                {
-                    user.Avatar = payload.Picture;
-                    // Note: Update logic should be in repo, but for now we'll assume it's okay or skip it
-                }
+                Console.WriteLine($"[GOOGLE AUTH]: User {payload.Email} found. Logging in...");
                 await _activityService.LogActivityAsync("Login", $"User logged in via Google: {user.FullName}", user.Email, user.FullName);
             }
 
@@ -254,12 +251,12 @@ public class AuthService : IAuthService
         }
         catch (InvalidJwtException ex)
         {
-            Console.WriteLine($"GOOGLE LOGIN ERROR (Invalid Token): {ex.Message}");
+            Console.WriteLine($"[GOOGLE AUTH ERROR] Invalid Token: {ex.Message}");
             return null;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"GOOGLE LOGIN ERROR (Unexpected): {ex.Message}");
+            Console.WriteLine($"[GOOGLE AUTH ERROR] Unexpected: {ex.Message}");
             Console.WriteLine(ex.StackTrace);
             return null;
         }
