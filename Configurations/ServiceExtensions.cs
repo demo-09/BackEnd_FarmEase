@@ -135,12 +135,13 @@ public static class ServiceExtensions
                 policy.WithOrigins(
                           "http://localhost:4200", 
                           "https://farmease.vercel.app", 
+                          "https://front-end-farm-ease.vercel.app",
                           "https://farm-ease-client.vercel.app",
                           "https://backend-farmease-1.onrender.com"
                       )
                       .AllowAnyHeader()
                       .AllowAnyMethod()
-                      .AllowCredentials(); // SignalR requires this
+                      .AllowCredentials(); // Required for SignalR
             });
         });
 

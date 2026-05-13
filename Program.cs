@@ -45,15 +45,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// ✅ CORS (Must be before Routing, SignalR, and Auth)
+app.UseCors("AllowAngularApp");
+
 // Serve static files (for images, etc.)
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<StockHub>("/stockHub");
-app.UseHttpsRedirection();
 
-// ✅ CORS (must be before auth)
-app.UseCors("AllowAngularApp");
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
