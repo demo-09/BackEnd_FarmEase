@@ -4,6 +4,7 @@ using backEnd.Models;
 using backEnd.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace backEnd.Controllers;
 
@@ -27,9 +28,18 @@ public class MachineryController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin,Admin,farmer")]
-    public async Task<IActionResult> CreateMachinery([FromBody] Machinery machinery)
+    [Authorize(Roles = "admin,Admin,farmer,Farmer")]
+    public async Task<IActionResult> CreateMachinery([FromBody] MachineryDto machineryDto)
     {
+        // Extract owner email from JWT
+        var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        var machinery = _machineryService.MapToModel(machineryDto); // We'll add this helper or use mapper directly
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            machinery.OwnerEmail = userEmail;
+        }
+
         var created = await _machineryService.CreateMachineryAsync(machinery);
         return Ok(created);
     }
@@ -52,5 +62,13 @@ public class MachineryController : ControllerBase
         if (!success) return NotFound();
 
         return NoContent();
+    }
+
+    [HttpPost("reset")]
+    [Authorize(Roles = "admin,Admin")]
+    public async Task<IActionResult> ResetInventory()
+    {
+        await _machineryService.ResetInventoryAsync();
+        return Ok(new { message = "Inventory reset to default values successfully." });
     }
 }

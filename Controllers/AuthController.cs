@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
     {
         var code = await _authService.InitiateRegistrationAsync(dto);
         if (code == null) return BadRequest(new { message = "Email already in use." });
-        return Ok(new { message = "OTP generated successfully", mockOtp = code });
+        return Ok(new { message = "Verification code sent to your email." });
     }
 
     [HttpPost("verify-otp-register")]

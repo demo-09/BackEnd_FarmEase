@@ -1,5 +1,9 @@
 using backEnd.Configurations;
 using backEnd.Middlewares;
+using backEnd.Hubs;
+using dotenv.net;
+
+DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,20 +14,23 @@ builder.Services.AddEndpointsApiExplorer();
 // ✅ Database
 builder.Services.AddDatabase(builder.Configuration);
 
-// ✅ Custom Services
-builder.Services.AddApplicationServices();
-
 // ✅ JWT Auth
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // ✅ Swagger
 builder.Services.AddSwaggerWithJwt();
-// ✅ CORS (FIXED: added configuration parameter)
+
+// ✅ CORS
 builder.Services.AddAngularCors(builder.Configuration);
+
+// ✅ SignalR (Added before application services)
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
 });
+
+// ✅ Custom Services
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
@@ -42,6 +49,7 @@ if (app.Environment.IsDevelopment())
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<StockHub>("/stockHub");
 app.UseHttpsRedirection();
 
 // ✅ CORS (must be before auth)

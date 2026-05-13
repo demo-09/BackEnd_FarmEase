@@ -13,4 +13,6 @@ public class Machinery
     public int Quantity { get; set; }
     public string Category { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string OwnerEmail { get; set; } = "admin@farmease.com"; // Default for system items
+    public ICollection<MachineryMedia> Media { get; set; } = new List<MachineryMedia>();
 }

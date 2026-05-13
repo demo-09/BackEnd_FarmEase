@@ -11,4 +11,6 @@ public interface IMachineryService
     Task<Machinery> CreateMachineryAsync(Machinery machinery);
     Task<MachineryDto?> UpdateMachineryAsync(long id, MachineryDto dto);
     Task<bool> DeleteMachineryAsync(long id);
+    Task ResetInventoryAsync();
+    Machinery MapToModel(MachineryDto dto);
 }

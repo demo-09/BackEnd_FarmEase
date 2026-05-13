@@ -18,13 +18,20 @@ public class OrderItemDto
     public int Quantity { get; set; }
     public string? ImageUrl { get; set; }
     public string ProductType { get; set; } = string.Empty;
+    public long? OrderId { get; set; }
+    public DateTime? OrderDate { get; set; }
+    public string? CustomerEmail { get; set; }
+    public string? CustomerName { get; set; }
+    public string? CustomerPhone { get; set; }
+    public string? CustomerAddress { get; set; }
+    public string? Category { get; set; }
+    public int StockLeft { get; set; }
 }
 
 public class CreateOrderDto
 {
-    // The cart items will typically be converted to an order on the backend.
-    // Or we provide the cart item IDs or simply checkout the entire cart.
-    // For simplicity, we can pass a list of items to order if we are checking out directly,
-    // or just tell the backend to checkout the user's entire cart.
     public bool CheckoutFromCart { get; set; } = true;
+    public string TransactionId { get; set; } = "COD";
+    public string ShippingAddress { get; set; } = string.Empty;
+    public List<AddToCartDto>? Items { get; set; } // For direct checkout
 }

@@ -39,16 +39,27 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
     {
         try
         {
+            var userId = GetUserId();
+            if (userId == "guest") return Unauthorized("Please log in to place an order.");
+
             if (dto.CheckoutFromCart)
             {
-                var order = await _orderService.CreateOrderFromCartAsync(GetUserId());
+                var order = await _orderService.CreateOrderFromCartAsync(userId, dto);
                 return Ok(order);
             }
-            return BadRequest("Direct checkout not fully implemented yet in DTO.");
+            
+            if (dto.Items != null && dto.Items.Any())
+            {
+                var order = await _orderService.CreateOrderDirectlyAsync(userId, dto);
+                return Ok(order);
+            }
+
+            return BadRequest("Please provide items or checkout from cart.");
         }
         catch (InvalidOperationException ex)
         {

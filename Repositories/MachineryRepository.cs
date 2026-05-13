@@ -14,10 +14,10 @@ public class MachineryRepository : IMachineryRepository
     }
 
     public async Task<IEnumerable<Machinery>> GetAllAsync()
-        => await _context.Machineries.ToListAsync();
-
+        => await _context.Machineries.Include(m => m.Media).ToListAsync();
+    
     public async Task<Machinery?> GetByIdAsync(long id)
-        => await _context.Machineries.FindAsync(id);
+        => await _context.Machineries.Include(m => m.Media).FirstOrDefaultAsync(m => m.Id == id);
 
     public async Task<Machinery> CreateAsync(Machinery machinery)
     {
@@ -35,6 +35,12 @@ public class MachineryRepository : IMachineryRepository
     public async Task DeleteAsync(Machinery machinery)
     {
         _context.Machineries.Remove(machinery);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task ClearAllAsync()
+    {
+        _context.Machineries.RemoveRange(_context.Machineries);
         await _context.SaveChangesAsync();
     }
 }

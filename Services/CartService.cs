@@ -62,7 +62,8 @@ public class CartService : ICartService
             Price = itemDto.Price,
             Quantity = itemDto.Quantity,
             ImageUrl = itemDto.ImageUrl,
-            Category = itemDto.Category
+            Category = itemDto.Category,
+            ProductType = itemDto.ProductType
         };
 
         _context.CartItems.Add(newItem);

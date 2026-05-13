@@ -30,7 +30,9 @@ public static class ServiceExtensions
     // ✅ JWT
     public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration config)
     {
-        var jwtKey = config["Jwt:Key"] ?? "SUPER_SECRET_KEY_123456";
+        var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? config["Jwt:Key"] ?? "SUPER_SECRET_KEY_123456";
+        var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? config["Jwt:Issuer"];
+        var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? config["Jwt:Audience"];
 
         services.AddAuthentication(options =>
         {
@@ -48,8 +50,8 @@ public static class ServiceExtensions
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = config["Jwt:Issuer"],
-                ValidAudience = config["Jwt:Audience"],
+                ValidIssuer = issuer,
+                ValidAudience = audience,
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(jwtKey))
             };
@@ -118,6 +120,7 @@ public static class ServiceExtensions
         services.AddScoped<IMessagesService, MessagesService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IActivityService, ActivityService>();
+        services.AddScoped<ICloudinaryService, CloudinaryService>();
 
         return services;
     }
@@ -129,9 +132,10 @@ public static class ServiceExtensions
         {
             options.AddPolicy("AllowAngularApp", policy =>
             {
-                policy.AllowAnyOrigin()
+                policy.WithOrigins("http://localhost:4200", "https://backend-farmease-1.onrender.com")
                       .AllowAnyHeader()
-                      .AllowAnyMethod();
+                      .AllowAnyMethod()
+                      .AllowCredentials(); // SignalR requires this
             });
         });
 

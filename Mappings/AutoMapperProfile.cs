@@ -10,5 +10,6 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<User, UserDto>();
         CreateMap<Machinery, MachineryDto>().ReverseMap();
+        CreateMap<MachineryMedia, MachineryMediaDto>().ReverseMap();
     }
 }

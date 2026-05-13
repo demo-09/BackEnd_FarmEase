@@ -1,5 +1,6 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using Microsoft.Extensions.Configuration;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
@@ -24,12 +25,49 @@ public class NotificationService : INotificationService
 
     public async Task SendEmailAsync(string toEmail, string subject, string body)
     {
-        Console.WriteLine($"[MOCK EMAIL to {toEmail}]: {subject} - {body}");
-        await Task.CompletedTask;
+        // Prioritize .env variables, fallback to appsettings Smtp section
+        var host = _config["SMTP_HOST"] ?? _config["Smtp:Host"];
+        var port = _config["SMTP_PORT"] ?? _config["Smtp:Port"] ?? "587";
+        var user = _config["SMTP_USER"] ?? _config["Smtp:Username"];
+        var pass = _config["SMTP_PASS"] ?? _config["Smtp:Password"];
+        var from = _config["SMTP_FROM"] ?? _config["Smtp:FromEmail"];
+
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
+        {
+            Console.WriteLine("[EMAIL ERROR]: SMTP configuration is incomplete. Please check your .env file.");
+            return;
+        }
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("FarmEase", from));
+        message.To.Add(new MailboxAddress("", toEmail));
+        message.Subject = subject;
+
+        var bodyBuilder = new BodyBuilder { HtmlBody = body };
+        message.Body = bodyBuilder.ToMessageBody();
+
+        using var client = new SmtpClient();
+        try
+        {
+            await client.ConnectAsync(host, int.Parse(port), SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(user, pass);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+            
+            Console.WriteLine($"[EMAIL SENT to {toEmail}]: {subject}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[EMAIL FAILED to {toEmail}]");
+            Console.WriteLine($"ERROR: {ex.Message}");
+            if (ex.InnerException != null) Console.WriteLine($"INNER: {ex.InnerException.Message}");
+            throw; 
+        }
     }
 
     public async Task SendSmsAsync(string toNumber, string message)
     {
+        // SMS implementation would go here if Twilio was configured
         Console.WriteLine($"[MOCK SMS to {toNumber}]: {message}");
         await Task.CompletedTask;
     }

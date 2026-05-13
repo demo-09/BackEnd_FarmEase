@@ -9,4 +9,5 @@ public interface IMachineryRepository
     Task<Machinery> CreateAsync(Machinery machinery);
     Task<Machinery> UpdateAsync(Machinery machinery);
     Task DeleteAsync(Machinery machinery);
+    Task ClearAllAsync();
 }

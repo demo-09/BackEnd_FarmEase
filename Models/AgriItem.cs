@@ -1,15 +1,16 @@
-namespace backEnd.DTOs;
+using System.ComponentModel.DataAnnotations;
 
-public class MachineryDto
+namespace backEnd.Models;
+
+public class AgriItem
 {
+    [Key]
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
+    public int Quantity { get; set; }
     public decimal Price { get; set; }
-    public string Condition { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Image { get; set; } = string.Empty;
-    public int Quantity { get; set; }
-    public string OwnerEmail { get; set; } = string.Empty;
-    public List<MachineryMediaDto> Media { get; set; } = new();
+    public string OwnerEmail { get; set; } = "admin@farmease.com";
 }
