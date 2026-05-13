@@ -431,7 +431,7 @@ public class OrderService : IOrderService
                                     join o in _context.Orders on oi.OrderId equals o.Id
                                     join u in _context.Users on o.UserId equals u.Id
                                     join m in _context.Machineries on oi.ProductId equals m.Id
-                                    where m.OwnerEmail == farmerEmail
+                                    where m.OwnerEmail == farmerEmail && oi.ProductType == "Machinery"
                                     select new OrderItemDto
                                     {
                                         Id = oi.Id,
@@ -456,7 +456,7 @@ public class OrderService : IOrderService
                                join o in _context.Orders on oi.OrderId equals o.Id
                                join u in _context.Users on o.UserId equals u.Id
                                join a in _context.AgriItems on oi.ProductId equals a.Id
-                               where a.OwnerEmail == farmerEmail
+                               where a.OwnerEmail == farmerEmail && oi.ProductType == "AgriItem"
                                select new OrderItemDto
                                {
                                    Id = oi.Id,
