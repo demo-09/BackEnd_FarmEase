@@ -132,7 +132,12 @@ public static class ServiceExtensions
         {
             options.AddPolicy("AllowAngularApp", policy =>
             {
-                policy.WithOrigins("http://localhost:4200", "https://backend-farmease-1.onrender.com")
+                policy.WithOrigins(
+                          "http://localhost:4200", 
+                          "https://farmease.vercel.app", 
+                          "https://farm-ease-client.vercel.app",
+                          "https://backend-farmease-1.onrender.com"
+                      )
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials(); // SignalR requires this
