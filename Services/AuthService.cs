@@ -170,7 +170,17 @@ public class AuthService : IAuthService
     {
         var user = await _repo.GetByEmailAsync(dto.Email);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        bool passwordValid = false;
+        try 
+        {
+            passwordValid = user != null && !string.IsNullOrEmpty(user.PasswordHash) && BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+        }
+        catch 
+        {
+            passwordValid = false; 
+        }
+
+        if (user == null || !passwordValid)
             return null;
 
         return new AuthResponseDto
@@ -267,7 +277,17 @@ public class AuthService : IAuthService
         // Check if user exists by email or phone
         var user = await _repo.GetByEmailOrPhoneAsync(dto.EmailOrPhone);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        bool passwordValid = false;
+        try 
+        {
+            passwordValid = user != null && !string.IsNullOrEmpty(user.PasswordHash) && BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+        }
+        catch 
+        {
+            passwordValid = false; 
+        }
+
+        if (user == null || !passwordValid)
         {
             // Invalid credentials, don't generate OTP
             return null;
