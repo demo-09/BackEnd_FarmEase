@@ -419,4 +419,323 @@ public class AuthService : IAuthService
             JoinedDate = user.JoinedDate
         };
     }
+
+    // =========================================================
+    // GOOGLE LOGIN
+    // =========================================================
+
+    public async Task<AuthResponseDto?> GoogleLoginAsync(
+        GoogleLoginDto dto
+    )
+    {
+        try
+        {
+            var settings =
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[]
+                    {
+                        "360775516641-oeppopoi7lbfues9mfnvcreciuin7u97.apps.googleusercontent.com"
+                    }
+                };
+
+            var payload =
+                await GoogleJsonWebSignature.ValidateAsync(
+                    dto.IdToken,
+                    settings
+                );
+
+            var user =
+                await _repo.GetByEmailAsync(payload.Email);
+
+            if (user == null)
+            {
+                var allowedRoles =
+                    new[] { "farmer", "customer" };
+
+                var role =
+                    allowedRoles.Contains(dto.Role?.ToLower())
+                    ? dto.Role.ToLower()
+                    : "customer";
+
+                user = new User
+                {
+                    Id = Guid.NewGuid().ToString(),
+
+                    FullName =
+                        payload.Name ??
+                        payload.GivenName ??
+                        payload.Email,
+
+                    Email = payload.Email,
+
+                    PasswordHash =
+                        "GOOGLE_USER_" +
+                        Guid.NewGuid().ToString("N"),
+
+                    Role = role,
+
+                    Phone = "",
+
+                    Address = "",
+
+                    BirthDate = "",
+
+                    Bio = "Registered via Google",
+
+                    Avatar =
+                        payload.Picture ??
+                        dto.Avatar ??
+                        $"https://ui-avatars.com/api/?name={payload.Name}&background=random",
+
+                    JoinedDate =
+                        DateTime.UtcNow.ToString("yyyy-MM-dd")
+                };
+
+                await _repo.CreateAsync(user);
+
+                await _activityService.LogActivityAsync(
+                    "Signup",
+                    $"User signed up via Google: {user.FullName}",
+                    user.Email,
+                    user.FullName
+                );
+            }
+            else
+            {
+                await _activityService.LogActivityAsync(
+                    "Login",
+                    $"User logged in via Google: {user.FullName}",
+                    user.Email,
+                    user.FullName
+                );
+            }
+
+            return new AuthResponseDto
+            {
+                Token =
+                    _jwtHelper.GenerateToken(user),
+
+                Id = user.Id,
+
+                Email = user.Email,
+
+                FullName = user.FullName,
+
+                Role = user.Role,
+
+                Phone = user.Phone,
+
+                Address = user.Address,
+
+                BirthDate = user.BirthDate,
+
+                Bio = user.Bio,
+
+                Avatar = user.Avatar,
+
+                JoinedDate = user.JoinedDate
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"GOOGLE LOGIN ERROR: {ex.Message}");
+            return null;
+        }
+    }
+
+    // =========================================================
+    // INITIATE LOGIN OTP
+    // =========================================================
+
+    public async Task<string?> InitiateLoginAsync(
+        InitiateLoginDto dto
+    )
+    {
+        var user =
+            await _repo.GetByEmailOrPhoneAsync(
+                dto.EmailOrPhone
+            );
+
+        bool passwordValid = false;
+
+        try
+        {
+            passwordValid =
+                user != null &&
+                !string.IsNullOrEmpty(user.PasswordHash) &&
+                BCrypt.Net.BCrypt.Verify(
+                    dto.Password,
+                    user.PasswordHash
+                );
+        }
+        catch
+        {
+            passwordValid = false;
+        }
+
+        if (user == null || !passwordValid)
+        {
+            return null;
+        }
+
+        var code =
+            new Random()
+            .Next(100000, 999999)
+            .ToString();
+
+        _otpStore[dto.EmailOrPhone] = code;
+
+        _otpExpiryStore[dto.EmailOrPhone] =
+            DateTime.UtcNow.AddMinutes(5);
+
+        try
+        {
+            if (dto.EmailOrPhone.Contains("@"))
+            {
+                var body = $@"
+<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; border-radius: 12px; overflow: hidden; border: 1px solid #ddd;'>
+
+    <div style='background: #16a34a; padding: 30px; text-align: center;'>
+
+        <h1 style='color: white; margin: 0;'>
+            FarmEase Login OTP ??
+        </h1>
+
+    </div>
+
+    <div style='padding: 30px;'>
+
+        <p>
+            Your login OTP is:
+        </p>
+
+        <div style='text-align:center; margin: 30px 0;'>
+
+            <h2 style='font-size: 40px; color:#16a34a; letter-spacing: 8px;'>
+                {code}
+            </h2>
+
+        </div>
+
+        <p>
+            OTP valid for 5 minutes.
+        </p>
+
+        <p style='color:red;'>
+            Never share your OTP.
+        </p>
+
+    </div>
+
+</div>";
+
+                await _notificationService.SendEmailAsync(
+                    dto.EmailOrPhone,
+                    "FarmEase Login OTP ??",
+                    body
+                );
+
+                Console.WriteLine($"LOGIN OTP: {code}");
+            }
+            else
+            {
+                await _notificationService.SendSmsAsync(
+                    dto.EmailOrPhone,
+                    $"Your FarmEase login OTP is: {code}"
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"NOTIFICATION ERROR: {ex.Message}");
+        }
+
+        return code;
+    }
+
+    // =========================================================
+    // VERIFY LOGIN OTP
+    // =========================================================
+
+    public async Task<AuthResponseDto?> VerifyOtpLoginAsync(
+        VerifyOtpDto dto
+    )
+    {
+        if (_otpStore.TryGetValue(dto.EmailOrPhone, out var storedCode))
+        {
+            if (
+                _otpExpiryStore.TryGetValue(
+                    dto.EmailOrPhone,
+                    out var expiryTime
+                )
+            )
+            {
+                if (DateTime.UtcNow > expiryTime)
+                {
+                    _otpStore.TryRemove(dto.EmailOrPhone, out _);
+
+                    _otpExpiryStore.TryRemove(
+                        dto.EmailOrPhone,
+                        out _
+                    );
+
+                    return null;
+                }
+            }
+
+            if (storedCode == dto.OtpCode)
+            {
+                _otpStore.TryRemove(dto.EmailOrPhone, out _);
+
+                _otpExpiryStore.TryRemove(
+                    dto.EmailOrPhone,
+                    out _
+                );
+
+                var user =
+                    await _repo.GetByEmailOrPhoneAsync(
+                        dto.EmailOrPhone
+                    );
+
+                if (user != null)
+                {
+                    await _activityService.LogActivityAsync(
+                        "Login",
+                        $"User logged in via OTP: {user.FullName}",
+                        user.Email,
+                        user.FullName
+                    );
+
+                    return new AuthResponseDto
+                    {
+                        Token =
+                            _jwtHelper.GenerateToken(user),
+
+                        Id = user.Id,
+
+                        Email = user.Email,
+
+                        FullName = user.FullName,
+
+                        Role = user.Role,
+
+                        Phone = user.Phone,
+
+                        Address = user.Address,
+
+                        BirthDate = user.BirthDate,
+
+                        Bio = user.Bio,
+
+                        Avatar = user.Avatar,
+
+                        JoinedDate = user.JoinedDate
+                    };
+                }
+            }
+        }
+
+        return null;
+    }
 }
