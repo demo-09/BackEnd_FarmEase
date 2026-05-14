@@ -12,8 +12,8 @@ using backEnd.Data;
 namespace backEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260429060145_init")]
-    partial class init
+    [Migration("20260514091343_i")]
+    partial class i
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,74 @@ namespace backEnd.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("backEnd.Models.Activity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserFullName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Activities");
+                });
+
+            modelBuilder.Entity("backEnd.Models.AgriItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AgriItems");
+                });
 
             modelBuilder.Entity("backEnd.Models.CartItem", b =>
                 {
@@ -121,6 +189,10 @@ namespace backEnd.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
@@ -130,6 +202,39 @@ namespace backEnd.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Machineries");
+                });
+
+            modelBuilder.Entity("backEnd.Models.MachineryMedia", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("MachineryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MachineryId");
+
+                    b.ToTable("MachineriesMedia");
                 });
 
             modelBuilder.Entity("backEnd.Models.Order", b =>
@@ -143,12 +248,20 @@ namespace backEnd.Migrations
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ShippingAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -293,6 +406,17 @@ namespace backEnd.Migrations
                     b.ToTable("WishlistItems");
                 });
 
+            modelBuilder.Entity("backEnd.Models.MachineryMedia", b =>
+                {
+                    b.HasOne("backEnd.Models.Machinery", "Machinery")
+                        .WithMany("Media")
+                        .HasForeignKey("MachineryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Machinery");
+                });
+
             modelBuilder.Entity("backEnd.Models.OrderItem", b =>
                 {
                     b.HasOne("backEnd.Models.Order", "Order")
@@ -302,6 +426,11 @@ namespace backEnd.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("backEnd.Models.Machinery", b =>
+                {
+                    b.Navigation("Media");
                 });
 
             modelBuilder.Entity("backEnd.Models.Order", b =>

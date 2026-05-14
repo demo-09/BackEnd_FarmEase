@@ -15,102 +15,192 @@ namespace backEnd.Configurations;
 
 public static class ServiceExtensions
 {
-    // ✅ PostgreSQL ONLY (Supabase)
-    public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration config)
+    // ─────────────────────────────────────────────
+    // PostgreSQL Database Configuration
+    // ─────────────────────────────────────────────
+    public static IServiceCollection AddDatabase(
+        this IServiceCollection services,
+        IConfiguration config)
     {
-        var connStr = config.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string not found");
+        var connStr = config.GetConnectionString("DefaultConnection");
+
+        if (string.IsNullOrEmpty(connStr))
+        {
+            throw new InvalidOperationException(
+                "Database connection string not found.");
+        }
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connStr));
+        {
+            options.UseNpgsql(connStr, npgsqlOptions =>
+            {
+                // Retry on transient failures
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null);
+
+                npgsqlOptions.CommandTimeout(60);
+            });
+
+#if DEBUG
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+#endif
+        });
 
         return services;
     }
 
-    // ✅ JWT
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration config)
+    // ─────────────────────────────────────────────
+    // JWT Authentication
+    // ─────────────────────────────────────────────
+    public static IServiceCollection AddJwtAuthentication(
+        this IServiceCollection services,
+        IConfiguration config)
     {
-        var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? config["Jwt:Key"] ?? "SUPER_SECRET_KEY_123456";
-        var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? config["Jwt:Issuer"];
-        var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? config["Jwt:Audience"];
+        var jwtKey =
+            Environment.GetEnvironmentVariable("JWT_KEY")
+            ?? config["Jwt:Key"]
+            ?? throw new InvalidOperationException("JWT Key missing");
 
-        services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.RequireHttpsMetadata = false;
-            options.SaveToken = true;
+        var issuer =
+            Environment.GetEnvironmentVariable("JWT_ISSUER")
+            ?? config["Jwt:Issuer"];
 
-            options.TokenValidationParameters = new TokenValidationParameters
+        var audience =
+            Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+            ?? config["Jwt:Audience"];
+
+        var key = Encoding.UTF8.GetBytes(jwtKey);
+
+        services
+            .AddAuthentication(options =>
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = issuer,
-                ValidAudience = audience,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtKey))
-            };
-        });
+                options.DefaultAuthenticateScheme =
+                    JwtBearerDefaults.AuthenticationScheme;
+
+                options.DefaultChallengeScheme =
+                    JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+
+                options.TokenValidationParameters =
+                    new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey =
+                            new SymmetricSecurityKey(key),
+
+                        ValidateIssuer = true,
+                        ValidIssuer = issuer,
+
+                        ValidateAudience = true,
+                        ValidAudience = audience,
+
+                        ValidateLifetime = true,
+
+                        ClockSkew = TimeSpan.Zero
+                    };
+
+                // ✅ SignalR JWT Support
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken =
+                            context.Request.Query["access_token"];
+
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/chatHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
         services.AddAuthorization();
+
         return services;
     }
 
-    // ✅ Swagger
-    public static IServiceCollection AddSwaggerWithJwt(this IServiceCollection services)
+    // ─────────────────────────────────────────────
+    // Swagger + JWT
+    // ─────────────────────────────────────────────
+    public static IServiceCollection AddSwaggerWithJwt(
+        this IServiceCollection services)
     {
-        services.AddSwaggerGen(c =>
+        services.AddSwaggerGen(options =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo
+            options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "FarmEase API",
-                Version = "v1"
+                Version = "v1",
+                Description = "FarmEase Backend API"
             });
 
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Description = "Enter Bearer {token}",
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
-            });
-
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
+            // JWT Security Definition
+            options.AddSecurityDefinition("Bearer",
+                new OpenApiSecurityScheme
                 {
-                    new OpenApiSecurityScheme
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description =
+                        "Enter JWT Token like: Bearer {your token}"
+                });
+
+            // JWT Security Requirement
+            options.AddSecurityRequirement(
+                new OpenApiSecurityRequirement
+                {
                     {
-                        Reference = new OpenApiReference
+                        new OpenApiSecurityScheme
                         {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
+                            Reference =
+                                new OpenApiReference
+                                {
+                                    Type =
+                                        ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
         });
 
         return services;
     }
 
-    // ✅ Services + Repositories
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    // ─────────────────────────────────────────────
+    // Dependency Injection
+    // ─────────────────────────────────────────────
+    public static IServiceCollection AddApplicationServices(
+        this IServiceCollection services)
     {
-        services.AddAutoMapper(typeof(Program));
+        // AutoMapper
+        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+        // Helpers
         services.AddScoped<JwtHelper>();
 
+        // Repositories
         services.AddScoped<IMachineryRepository, MachineryRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAuthRepository, AuthRepository>();
 
+        // Services
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IMachineryService, MachineryService>();
@@ -125,23 +215,26 @@ public static class ServiceExtensions
         return services;
     }
 
-    // ✅ CORS (SAFE FOR DEPLOYMENT)
-    public static IServiceCollection AddAngularCors(this IServiceCollection services, IConfiguration config)
+    // ─────────────────────────────────────────────
+    // CORS Configuration
+    // ─────────────────────────────────────────────
+    public static IServiceCollection AddAngularCors(
+        this IServiceCollection services,
+        IConfiguration config)
     {
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAngularApp", policy =>
             {
-                policy.WithOrigins(
-                          "http://localhost:4200", 
-                          "https://farmease.vercel.app", 
-                          "https://front-end-farm-ease.vercel.app",
-                          "https://farm-ease-client.vercel.app",
-                          "https://backend-farmease-1.onrender.com"
-                      )
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials(); // Required for SignalR
+                policy
+                    .WithOrigins(
+                        "http://localhost:4200",
+                        "https://front-end-farm-ease.vercel.app",
+                        "https://backend-farmease-1.onrender.com"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
 

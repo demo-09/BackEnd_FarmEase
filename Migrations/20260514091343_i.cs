@@ -7,11 +7,46 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backEnd.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class i : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Activities",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    ActionType = table.Column<string>(type: "text", nullable: false),
+                    Details = table.Column<string>(type: "text", nullable: false),
+                    UserEmail = table.Column<string>(type: "text", nullable: false),
+                    UserFullName = table.Column<string>(type: "text", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Activities", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AgriItems",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Category = table.Column<string>(type: "text", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Image = table.Column<string>(type: "text", nullable: false),
+                    OwnerEmail = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AgriItems", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "CartItems",
                 columns: table => new
@@ -60,7 +95,8 @@ namespace backEnd.Migrations
                     Condition = table.Column<string>(type: "text", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     Category = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false)
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    OwnerEmail = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -76,7 +112,9 @@ namespace backEnd.Migrations
                     UserId = table.Column<string>(type: "text", nullable: false),
                     TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false)
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    TransactionId = table.Column<string>(type: "text", nullable: false),
+                    ShippingAddress = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -126,6 +164,29 @@ namespace backEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MachineriesMedia",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MachineryId = table.Column<long>(type: "bigint", nullable: false),
+                    Url = table.Column<string>(type: "text", nullable: false),
+                    PublicId = table.Column<string>(type: "text", nullable: false),
+                    MediaType = table.Column<string>(type: "text", nullable: false),
+                    IsPrimary = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MachineriesMedia", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MachineriesMedia_Machineries_MachineryId",
+                        column: x => x.MachineryId,
+                        principalTable: "Machineries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderItems",
                 columns: table => new
                 {
@@ -151,6 +212,11 @@ namespace backEnd.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_MachineriesMedia_MachineryId",
+                table: "MachineriesMedia",
+                column: "MachineryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
                 table: "OrderItems",
                 column: "OrderId");
@@ -166,13 +232,19 @@ namespace backEnd.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Activities");
+
+            migrationBuilder.DropTable(
+                name: "AgriItems");
+
+            migrationBuilder.DropTable(
                 name: "CartItems");
 
             migrationBuilder.DropTable(
                 name: "ChatMessages");
 
             migrationBuilder.DropTable(
-                name: "Machineries");
+                name: "MachineriesMedia");
 
             migrationBuilder.DropTable(
                 name: "OrderItems");
@@ -182,6 +254,9 @@ namespace backEnd.Migrations
 
             migrationBuilder.DropTable(
                 name: "WishlistItems");
+
+            migrationBuilder.DropTable(
+                name: "Machineries");
 
             migrationBuilder.DropTable(
                 name: "Orders");

@@ -7,62 +7,98 @@ DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ─── Services ─────────────────────────────
+// ─────────────────────────────────────────────
+// Controllers
+// ─────────────────────────────────────────────
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ Database
+// ─────────────────────────────────────────────
+// Database Configuration
+// ─────────────────────────────────────────────
 builder.Services.AddDatabase(builder.Configuration);
 
-// ✅ JWT Auth
+// ─────────────────────────────────────────────
+// JWT Authentication
+// ─────────────────────────────────────────────
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-// ✅ Swagger
+// ─────────────────────────────────────────────
+// Swagger Configuration
+// ─────────────────────────────────────────────
 builder.Services.AddSwaggerWithJwt();
 
-// ✅ CORS
+// ─────────────────────────────────────────────
+// CORS Configuration
+// ─────────────────────────────────────────────
 builder.Services.AddAngularCors(builder.Configuration);
 
-// ✅ SignalR (Added before application services)
+// ─────────────────────────────────────────────
+// SignalR Configuration
+// ─────────────────────────────────────────────
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
 });
 
-// ✅ Custom Services
+// ─────────────────────────────────────────────
+// Custom Application Services
+// ─────────────────────────────────────────────
 builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
-// ─── Middleware ───────────────────────────
-
+// ─────────────────────────────────────────────
 // Global Exception Middleware
+// ─────────────────────────────────────────────
 app.UseGlobalExceptionMiddleware();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// ─────────────────────────────────────────────
+// Swagger Middleware
+// ─────────────────────────────────────────────
+app.UseSwagger();
 
-// ✅ CORS (Must be before Routing, SignalR, and Auth)
-app.UseCors("AllowAngularApp");
-
-// Serve static files (for images, etc.)
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.MapHub<ChatHub>("/chatHub");
-app.MapHub<StockHub>("/stockHub");
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "FarmEase API v1");
+    c.RoutePrefix = string.Empty;
 });
+
+// ─────────────────────────────────────────────
+// HTTPS Redirection
+// ─────────────────────────────────────────────
+app.UseHttpsRedirection();
+
+// ─────────────────────────────────────────────
+// Static Files
+// ─────────────────────────────────────────────
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// ─────────────────────────────────────────────
+// CORS
+// ─────────────────────────────────────────────
+app.UseCors("AllowAngularApp");
+
+// ─────────────────────────────────────────────
+// Authentication & Authorization
+// ─────────────────────────────────────────────
+app.UseAuthentication();
+app.UseAuthorization();
+
+// ─────────────────────────────────────────────
+// SignalR Hubs
+// ─────────────────────────────────────────────
+app.MapHub<ChatHub>("/chatHub");
+app.MapHub<StockHub>("/stockHub");
+
+// ─────────────────────────────────────────────
+// Controllers
+// ─────────────────────────────────────────────
+app.MapControllers();
+
+// ─────────────────────────────────────────────
+// Run Application
+// ─────────────────────────────────────────────
 app.Run();
