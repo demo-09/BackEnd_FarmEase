@@ -307,6 +307,7 @@ public class AuthService : IAuthService
                     dto.EmailOrPhone, 
                     "Your FarmEase Login OTP", 
                     $"Your OTP for FarmEase is: <b>{code}</b>. It is valid for 5 minutes.");
+                Console.WriteLine(code);
             }
             else
             {
