@@ -180,7 +180,7 @@ public class OrderService : IOrderService
                                     </div>
                                     <p style='color: #64748b; font-size: 14px;'>The order details have been added to your Farmer Dashboard. Please prepare the items for dispatch.</p>
                                     <div style='text-align: center; margin-top: 30px;'>
-                                        <a href='https://farmease.vercel.app/my-sales' style='background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 30px; font-weight: bold;'>View Dashboard</a>
+                                        <a href='https://front-end-farm-ease.vercel.app/#/my-sales' style='background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 30px; font-weight: bold;'>View Dashboard</a>
                                     </div>
                                 </div>
                                 <div style='background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;'>

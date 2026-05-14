@@ -17,44 +17,71 @@ public class AuthService : IAuthService
     private readonly INotificationService _notificationService;
     private readonly IActivityService _activityService;
 
-    // Static dictionary to mock OTP storage (Email/Phone -> OTP)
+    // OTP STORE
     private static readonly ConcurrentDictionary<string, string> _otpStore = new();
-    
-    // Static dictionary to cache unverified users during signup (Email -> RegisterDto)
+
+    // OTP EXPIRY STORE
+    private static readonly ConcurrentDictionary<string, DateTime> _otpExpiryStore = new();
+
+    // CACHE UNVERIFIED USERS
     private static readonly ConcurrentDictionary<string, RegisterDto> _unverifiedUsers = new();
 
-    public AuthService(IAuthRepository repo, JwtHelper jwtHelper, IMapper mapper, INotificationService notificationService, IActivityService activityService)
+    public AuthService(
+        IAuthRepository repo,
+        JwtHelper jwtHelper,
+        IMapper mapper,
+        INotificationService notificationService,
+        IActivityService activityService
+    )
     {
-        _repo      = repo;
+        _repo = repo;
         _jwtHelper = jwtHelper;
-        _mapper    = mapper;
+        _mapper = mapper;
         _notificationService = notificationService;
         _activityService = activityService;
     }
+
+    // =========================================================
+    // REGISTER
+    // =========================================================
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
     {
         if (await _repo.EmailExistsAsync(dto.Email))
             return null;
 
-        // ?? Restrict role
         var allowedRoles = new[] { "farmer", "customer" };
-        var role = allowedRoles.Contains(dto.Role.ToLower()) ? dto.Role.ToLower() : "customer";
+
+        var role =
+            allowedRoles.Contains(dto.Role?.ToLower())
+            ? dto.Role.ToLower()
+            : "customer";
 
         var newUser = new User
         {
             Id = Guid.NewGuid().ToString(),
+
             FullName = dto.FullName,
+
             Email = dto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+
+            PasswordHash =
+                BCrypt.Net.BCrypt.HashPassword(dto.Password),
+
             Role = role,
+
             Avatar = dto.Avatar,
+
             Phone = dto.Phone,
+
             Address = dto.Address,
+
             BirthDate = dto.BirthDate,
+
             Bio = dto.Bio,
 
-            JoinedDate = DateTime.Now.ToString("yyyy-MM-dd")
+            JoinedDate =
+                DateTime.UtcNow.ToString("yyyy-MM-dd")
         };
 
         await _repo.CreateAsync(newUser);
@@ -62,122 +89,305 @@ public class AuthService : IAuthService
         return new AuthResponseDto
         {
             Token = _jwtHelper.GenerateToken(newUser),
+
             Id = newUser.Id,
+
             Email = newUser.Email,
+
             FullName = newUser.FullName,
+
             Role = newUser.Role,
+
             Phone = newUser.Phone,
+
             Address = newUser.Address,
+
             BirthDate = newUser.BirthDate,
+
             Bio = newUser.Bio,
+
             Avatar = newUser.Avatar,
+
             JoinedDate = newUser.JoinedDate
         };
     }
+
+    // =========================================================
+    // INITIATE REGISTER OTP
+    // =========================================================
 
     public async Task<string?> InitiateRegistrationAsync(RegisterDto dto)
     {
         if (await _repo.EmailExistsAsync(dto.Email))
         {
-            return null; // Email already in use
+            return null;
         }
 
-        // Cache the registration info
+        // CACHE USER
         _unverifiedUsers[dto.Email] = dto;
 
-        // Generate a 6-digit code.
-        var code = new Random().Next(100000, 999999).ToString();
+        // GENERATE OTP
+        var code =
+            new Random()
+            .Next(100000, 999999)
+            .ToString();
+
         _otpStore[dto.Email] = code;
 
-        // Send OTP
-        try 
+        // OTP EXPIRY (5 MINUTES)
+        _otpExpiryStore[dto.Email] =
+            DateTime.UtcNow.AddMinutes(5);
+
+        try
         {
             if (dto.Email.Contains("@"))
             {
+                var body = $@"
+<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);'>
+
+    <div style='background: #16a34a; padding: 30px; text-align: center;'>
+        <h1 style='color: white; margin: 0; font-size: 26px;'>
+            FarmEase OTP Verification ??
+        </h1>
+    </div>
+
+    <div style='padding: 30px; line-height: 1.6; color: #333;'>
+
+        <p style='font-size: 18px;'>
+            Hello {dto.FullName} ?????
+        </p>
+
+        <p>
+            Your OTP for FarmEase account verification is:
+        </p>
+
+        <div style='background: #f0fdf4; border: 2px dashed #16a34a; padding: 25px; text-align: center; border-radius: 12px; margin: 25px 0;'>
+
+            <h2 style='margin: 0; color: #16a34a; font-size: 42px; letter-spacing: 8px;'>
+                {code}
+            </h2>
+
+        </div>
+
+        <p>
+            This OTP is valid for 
+            <strong>5 minutes</strong>.
+        </p>
+
+        <p style='color: #ef4444;'>
+            ?? Never share this OTP with anyone.
+        </p>
+
+        <div style='text-align: center; margin-top: 35px;'>
+
+            <a href='https://front-end-farm-ease.vercel.app'
+               style='background: #16a34a;
+                      color: white;
+                      padding: 14px 30px;
+                      text-decoration: none;
+                      border-radius: 30px;
+                      font-weight: bold;
+                      display: inline-block;'>
+
+                Open FarmEase ??
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div style='background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b;'>
+
+        <p style='margin: 0;'>
+            FarmEase - Empowering Farmers ??
+        </p>
+
+    </div>
+
+</div>";
+
                 await _notificationService.SendEmailAsync(
-                    dto.Email, 
-                    "Verify Your FarmEase Account", 
-                    $"Your FarmEase verification code is: <b>{code}</b>. It is valid for 5 minutes.");
+                    dto.Email,
+                    "Verify Your FarmEase Account ??",
+                    body
+                );
+
+                Console.WriteLine($"REGISTER OTP: {code}");
             }
             else
             {
-                await _notificationService.SendSmsAsync(dto.Email, $"Your FarmEase verification code is: {code}");
+                await _notificationService.SendSmsAsync(
+                    dto.Email,
+                    $"Your FarmEase OTP is: {code}"
+                );
             }
         }
         catch (Exception ex)
         {
-            // Log the error but don't crash - allow the user to see the mock OTP in console for now
             Console.WriteLine($"NOTIFICATION ERROR: {ex.Message}");
         }
 
         return code;
     }
 
-    public async Task<AuthResponseDto?> VerifyOtpRegistrationAsync(VerifyOtpDto dto)
+    // =========================================================
+    // VERIFY REGISTER OTP
+    // =========================================================
+
+    public async Task<AuthResponseDto?> VerifyOtpRegistrationAsync(
+        VerifyOtpDto dto
+    )
     {
         if (_otpStore.TryGetValue(dto.EmailOrPhone, out var storedCode))
         {
+            // CHECK EXPIRY
+            if (
+                _otpExpiryStore.TryGetValue(
+                    dto.EmailOrPhone,
+                    out var expiryTime
+                )
+            )
+            {
+                if (DateTime.UtcNow > expiryTime)
+                {
+                    _otpStore.TryRemove(dto.EmailOrPhone, out _);
+
+                    _otpExpiryStore.TryRemove(
+                        dto.EmailOrPhone,
+                        out _
+                    );
+
+                    return null;
+                }
+            }
+
+            // VERIFY OTP
             if (storedCode == dto.OtpCode)
             {
-                // OTP matches! Clear it.
                 _otpStore.TryRemove(dto.EmailOrPhone, out _);
 
-                // Retrieve the cached registration info
-                if (_unverifiedUsers.TryGetValue(dto.EmailOrPhone, out var registerDto))
-                {
-                    _unverifiedUsers.TryRemove(dto.EmailOrPhone, out _);
+                _otpExpiryStore.TryRemove(
+                    dto.EmailOrPhone,
+                    out _
+                );
 
-                    // Create the user in the database
+                if (
+                    _unverifiedUsers.TryGetValue(
+                        dto.EmailOrPhone,
+                        out var registerDto
+                    )
+                )
+                {
+                    _unverifiedUsers.TryRemove(
+                        dto.EmailOrPhone,
+                        out _
+                    );
+
+                    var allowedRoles =
+                        new[] { "farmer", "customer" };
+
+                    var role =
+                        allowedRoles.Contains(
+                            registerDto.Role?.ToLower()
+                        )
+                        ? registerDto.Role.ToLower()
+                        : "customer";
+
                     var user = new User
                     {
+                        Id = Guid.NewGuid().ToString(),
+
                         FullName = registerDto.FullName,
+
                         Email = registerDto.Email,
+
                         Phone = registerDto.Phone,
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-                        Role = registerDto.Role ?? "customer",
+
+                        PasswordHash =
+                            BCrypt.Net.BCrypt.HashPassword(
+                                registerDto.Password
+                            ),
+
+                        Role = role,
+
                         Avatar = registerDto.Avatar,
+
                         Bio = registerDto.Bio,
+
                         Address = registerDto.Address,
-                        JoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd")
+
+                        BirthDate = registerDto.BirthDate,
+
+                        JoinedDate =
+                            DateTime.UtcNow.ToString("yyyy-MM-dd")
                     };
 
                     await _repo.CreateAsync(user);
 
-                    await _activityService.LogActivityAsync("Signup", $"New user registered: {user.FullName} ({user.Role})", user.Email, user.FullName);
+                    await _activityService.LogActivityAsync(
+                        "Signup",
+                        $"New user registered: {user.FullName}",
+                        user.Email,
+                        user.FullName
+                    );
 
-                    var token = _jwtHelper.GenerateToken(user);
                     return new AuthResponseDto
                     {
-                        Token = token,
+                        Token =
+                            _jwtHelper.GenerateToken(user),
+
                         Id = user.Id,
+
                         Email = user.Email,
+
                         FullName = user.FullName,
+
                         Role = user.Role,
+
                         Phone = user.Phone,
+
                         Address = user.Address,
+
                         BirthDate = user.BirthDate,
+
                         Bio = user.Bio,
+
                         Avatar = user.Avatar,
+
                         JoinedDate = user.JoinedDate
                     };
                 }
             }
         }
+
         return null;
     }
 
+    // =========================================================
+    // LOGIN
+    // =========================================================
+
     public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
     {
-        var user = await _repo.GetByEmailAsync(dto.Email);
+        var user =
+            await _repo.GetByEmailAsync(dto.Email);
 
         bool passwordValid = false;
-        try 
+
+        try
         {
-            passwordValid = user != null && !string.IsNullOrEmpty(user.PasswordHash) && BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            passwordValid =
+                user != null &&
+                !string.IsNullOrEmpty(user.PasswordHash) &&
+                BCrypt.Net.BCrypt.Verify(
+                    dto.Password,
+                    user.PasswordHash
+                );
         }
-        catch 
+        catch
         {
-            passwordValid = false; 
+            passwordValid = false;
         }
 
         if (user == null || !passwordValid)
@@ -185,178 +395,28 @@ public class AuthService : IAuthService
 
         return new AuthResponseDto
         {
-            Token      = _jwtHelper.GenerateToken(user),
-            Id         = user.Id,
-            Email      = user.Email,
-            FullName   = user.FullName,
-            Role       = user.Role,
-            Phone      = user.Phone,
-            Address    = user.Address,
-            BirthDate  = user.BirthDate,
-            Bio        = user.Bio,
-            Avatar     = user.Avatar,
+            Token =
+                _jwtHelper.GenerateToken(user),
+
+            Id = user.Id,
+
+            Email = user.Email,
+
+            FullName = user.FullName,
+
+            Role = user.Role,
+
+            Phone = user.Phone,
+
+            Address = user.Address,
+
+            BirthDate = user.BirthDate,
+
+            Bio = user.Bio,
+
+            Avatar = user.Avatar,
+
             JoinedDate = user.JoinedDate
         };
-    }
-
-    public async Task<AuthResponseDto?> GoogleLoginAsync(GoogleLoginDto dto)
-    {
-        try
-        {
-            Console.WriteLine("[GOOGLE AUTH]: Validating token...");
-            var settings = new GoogleJsonWebSignature.ValidationSettings
-            {
-                Audience = new[] { "360775516641-oeppopoi7lbfues9mfnvcreciuin7u97.apps.googleusercontent.com" }
-            };
-
-            var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
-            Console.WriteLine($"[GOOGLE AUTH]: Token valid for {payload.Email}");
-            
-            var user = await _repo.GetByEmailAsync(payload.Email);
-
-            if (user == null)
-            {
-                Console.WriteLine($"[GOOGLE AUTH]: Creating new user for {payload.Email}");
-                // Register the user
-                var allowedRoles = new[] { "farmer", "customer" };
-                var role = allowedRoles.Contains(dto.Role?.ToLower()) ? dto.Role.ToLower() : "customer";
-
-                user = new User
-                {
-                    FullName = payload.Name ?? payload.GivenName ?? payload.Email,
-                    Email = payload.Email,
-                    PasswordHash = "GOOGLE_USER_" + Guid.NewGuid().ToString("N"), // Safe non-empty hash
-                    Role = role,
-                    Phone = "",
-                    Address = "",
-                    BirthDate = "",
-                    Bio = "Registered via Google",
-                    Avatar = payload.Picture ?? dto.Avatar ?? $"https://ui-avatars.com/api/?name={payload.Name}&background=random",
-                    JoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd")
-                };
-
-                await _repo.CreateAsync(user);
-                await _activityService.LogActivityAsync("Signup", $"User signed up via Google: {user.FullName}", user.Email, user.FullName);
-            }
-            else
-            {
-                Console.WriteLine($"[GOOGLE AUTH]: User {payload.Email} found. Logging in...");
-                await _activityService.LogActivityAsync("Login", $"User logged in via Google: {user.FullName}", user.Email, user.FullName);
-            }
-
-            return new AuthResponseDto
-            {
-                Token      = _jwtHelper.GenerateToken(user),
-                Id         = user.Id,
-                Email      = user.Email,
-                FullName   = user.FullName,
-                Role       = user.Role,
-                Phone      = user.Phone,
-                Address    = user.Address,
-                BirthDate  = user.BirthDate,
-                Bio        = user.Bio,
-                Avatar     = user.Avatar,
-                JoinedDate = user.JoinedDate
-            };
-        }
-        catch (InvalidJwtException ex)
-        {
-            Console.WriteLine($"[GOOGLE AUTH ERROR] Invalid Token: {ex.Message}");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[GOOGLE AUTH ERROR] Unexpected: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
-            return null;
-        }
-    }
-
-    public async Task<string?> InitiateLoginAsync(InitiateLoginDto dto)
-    {
-        // Check if user exists by email or phone
-        var user = await _repo.GetByEmailOrPhoneAsync(dto.EmailOrPhone);
-
-        bool passwordValid = false;
-        try 
-        {
-            passwordValid = user != null && !string.IsNullOrEmpty(user.PasswordHash) && BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-        }
-        catch 
-        {
-            passwordValid = false; 
-        }
-
-        if (user == null || !passwordValid)
-        {
-            // Invalid credentials, don't generate OTP
-            return null;
-        }
-
-        // Generate a 6-digit code.
-        var code = new Random().Next(100000, 999999).ToString();
-        
-        _otpStore[dto.EmailOrPhone] = code;
-
-        // Send OTP
-        try 
-        {
-            if (dto.EmailOrPhone.Contains("@"))
-            {
-                await _notificationService.SendEmailAsync(
-                    dto.EmailOrPhone, 
-                    "Your FarmEase Login OTP", 
-                    $"Your OTP for FarmEase is: <b>{code}</b>. It is valid for 5 minutes.");
-                Console.WriteLine(code);
-            }
-            else
-            {
-                await _notificationService.SendSmsAsync(dto.EmailOrPhone, $"Your FarmEase OTP is: {code}");
-            }
-        }
-        catch (Exception ex)
-        {
-            // Log error but continue so the API doesn't return 500
-            Console.WriteLine($"NOTIFICATION ERROR: {ex.Message}");
-        }
-
-        return code;
-    }
-
-    public async Task<AuthResponseDto?> VerifyOtpLoginAsync(VerifyOtpDto dto)
-    {
-        if (_otpStore.TryGetValue(dto.EmailOrPhone, out var storedCode))
-        {
-            if (storedCode == dto.OtpCode)
-            {
-                // OTP matches! Clear it.
-                _otpStore.TryRemove(dto.EmailOrPhone, out _);
-
-                // Find user by email or phone. We know they exist because we verified them in InitiateLoginAsync.
-                var user = await _repo.GetByEmailOrPhoneAsync(dto.EmailOrPhone);
-
-                if (user != null)
-                {
-                    await _activityService.LogActivityAsync("Login", $"User logged in via OTP: {user.FullName}", user.Email, user.FullName);
-
-                    return new AuthResponseDto
-                    {
-                        Token = _jwtHelper.GenerateToken(user),
-                        Id = user.Id,
-                        Email = user.Email,
-                        FullName = user.FullName,
-                        Role = user.Role,
-                        Phone = user.Phone,
-                        Address = user.Address,
-                        BirthDate = user.BirthDate,
-                        Bio = user.Bio,
-                        Avatar = user.Avatar,
-                        JoinedDate = user.JoinedDate
-                    };
-                }
-            }
-        }
-
-        return null;
     }
 }
