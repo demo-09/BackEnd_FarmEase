@@ -180,7 +180,7 @@ public class AuthService : IAuthService
 
         <div style='text-align: center; margin-top: 35px;'>
 
-            <a href='https://front-end-farm-ease.vercel.app'
+            <a href='https://front-end-farm-ease.vercel.app/#/login'
                style='background: #16a34a;
                       color: white;
                       padding: 14px 30px;
