@@ -342,7 +342,7 @@ public class OrderService : IOrderService
                                     </div>
                                     <p style='color: #64748b; font-size: 14px;'>The order details have been added to your Farmer Dashboard. Please prepare the items for dispatch.</p>
                                     <div style='text-align: center; margin-top: 30px;'>
-                                        <a href='https://farmease.vercel.app/my-sales' style='background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 30px; font-weight: bold;'>View Dashboard</a>
+                                        <a href='https://front-end-farm-ease.vercel.app/#/my-sales' style='background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 30px; font-weight: bold;'>View Dashboard</a>
                                     </div>
                                 </div>
                                 <div style='background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;'>
@@ -426,57 +426,116 @@ public class OrderService : IOrderService
 
     public async Task<IEnumerable<OrderItemDto>> GetFarmerOrdersAsync(string farmerEmail)
     {
-        // 2. Fetch order items for Machinery
-        var machinerySales = await (from oi in _context.OrderItems
-                                    join o in _context.Orders on oi.OrderId equals o.Id
-                                    join u in _context.Users on o.UserId equals u.Id
-                                    join m in _context.Machineries on oi.ProductId equals m.Id
-                                    where m.OwnerEmail == farmerEmail && oi.ProductType == "Machinery"
-                                    select new OrderItemDto
-                                    {
-                                        Id = oi.Id,
-                                        ProductId = oi.ProductId,
-                                        ProductName = oi.ProductName,
-                                        Price = oi.Price,
-                                        Quantity = oi.Quantity,
-                                        ImageUrl = oi.ImageUrl,
-                                        ProductType = oi.ProductType,
-                                        OrderId = oi.OrderId,
-                                        OrderDate = o.OrderDate,
-                                        CustomerEmail = u.Email,
-                                        CustomerName = u.FullName,
-                                        CustomerPhone = u.Phone,
-                                        CustomerAddress = o.ShippingAddress,
-                                        Category = m.Category,
-                                        StockLeft = m.Quantity
-                                    }).ToListAsync();
+        // Load all users once
+        var users = await _context.Users
+            .ToDictionaryAsync(x => x.Id);
 
-        // 3. Fetch order items for AgriItems
-        var agriSales = await (from oi in _context.OrderItems
-                               join o in _context.Orders on oi.OrderId equals o.Id
-                               join u in _context.Users on o.UserId equals u.Id
-                               join a in _context.AgriItems on oi.ProductId equals a.Id
-                               where a.OwnerEmail == farmerEmail && oi.ProductType == "AgriItem"
-                               select new OrderItemDto
-                               {
-                                   Id = oi.Id,
-                                   ProductId = oi.ProductId,
-                                   ProductName = oi.ProductName,
-                                   Price = oi.Price,
-                                   Quantity = oi.Quantity,
-                                   ImageUrl = oi.ImageUrl,
-                                   ProductType = oi.ProductType,
-                                   OrderId = oi.OrderId,
-                                   OrderDate = o.OrderDate,
-                                   CustomerEmail = u.Email,
-                                   CustomerName = u.FullName,
-                                   CustomerPhone = u.Phone,
-                                   CustomerAddress = o.ShippingAddress,
-                                   Category = a.Category,
-                                   StockLeft = a.Quantity
-                               }).ToListAsync();
+        // Load order items with orders
+        var orderItems = await _context.OrderItems
+            .Include(x => x.Order)
+            .ToListAsync();
 
-        // 4. Combine and sort
-        return machinerySales.Concat(agriSales).OrderByDescending(s => s.OrderDate);
+        var result = new List<OrderItemDto>();
+
+        foreach (var oi in orderItems)
+        {
+            var type = oi.ProductType?.ToLower();
+
+            // =========================
+            // MACHINERY
+            // =========================
+
+            if (type == "machinery")
+            {
+                var machinery = await _context.Machineries
+                    .FirstOrDefaultAsync(x => x.Id == oi.ProductId);
+
+                if (machinery == null)
+                    continue;
+
+                if (machinery.OwnerEmail != farmerEmail)
+                    continue;
+
+                var user = await _context.Users
+     .FirstOrDefaultAsync(x => x.Email == oi.Order.UserId);
+
+                Console.WriteLine($"ORDER USER ID: {oi.Order.UserId}");
+                Console.WriteLine($"CUSTOMER EMAIL: {user?.Email}");
+
+                result.Add(new OrderItemDto
+                {
+                    Id = oi.Id,
+                    ProductId = oi.ProductId,
+                    ProductName = oi.ProductName,
+                    Price = oi.Price,
+                    Quantity = oi.Quantity,
+                    ImageUrl = oi.ImageUrl,
+                    ProductType = oi.ProductType,
+
+                    OrderId = oi.OrderId,
+                    OrderDate = oi.Order.OrderDate,
+
+                    CustomerEmail = user?.Email,
+                    CustomerName = user?.FullName,
+                    CustomerPhone = user?.Phone,
+
+                    CustomerAddress = oi.Order.ShippingAddress,
+
+                    Category = machinery.Category,
+                    StockLeft = machinery.Quantity
+                });
+            }
+
+            // =========================
+            // AGRI ITEM
+            // =========================
+
+            else if (type == "agriitem")
+            {
+                var agri = await _context.AgriItems
+                    .FirstOrDefaultAsync(x => x.Id == oi.ProductId);
+
+                if (agri == null)
+                    continue;
+
+                if (agri.OwnerEmail != farmerEmail)
+                    continue;
+
+                var user = await _context.Users
+    .FirstOrDefaultAsync(x => x.Email == oi.Order.UserId);
+
+                Console.WriteLine($"ORDER USER ID: {oi.Order.UserId}");
+                Console.WriteLine($"CUSTOMER EMAIL: {user?.Email}");
+
+                result.Add(new OrderItemDto
+                {
+                    Id = oi.Id,
+                    ProductId = oi.ProductId,
+                    ProductName = oi.ProductName,
+                    Price = oi.Price,
+                    Quantity = oi.Quantity,
+                    ImageUrl = oi.ImageUrl,
+                    ProductType = oi.ProductType,
+
+                    OrderId = oi.OrderId,
+                    OrderDate = oi.Order.OrderDate,
+
+                    CustomerEmail = user?.Email,
+                    CustomerName = user?.FullName,
+                    CustomerPhone = user?.Phone,
+
+                    CustomerAddress = oi.Order.ShippingAddress,
+
+                    Category = agri.Category,
+                    StockLeft = agri.Quantity
+                });
+            }
+        }
+
+        Console.WriteLine($"TOTAL SALES FOUND: {result.Count}");
+
+        return result
+            .OrderByDescending(x => x.OrderDate)
+            .ToList();
     }
 }

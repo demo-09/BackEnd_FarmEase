@@ -26,8 +26,8 @@ public class FarmerController : ControllerBase
     {
         var email = User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(email)) return Unauthorized("Email claim missing from token.");
-
         var sales = await _orderService.GetFarmerOrdersAsync(email);
+        Console.WriteLine(email);
         return Ok(sales);
     }
 
