@@ -49,12 +49,14 @@ public class NotificationService : INotificationService
         using var client = new SmtpClient();
         try
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             await client.ConnectAsync(host, int.Parse(port), SecureSocketOptions.StartTls);
             await client.AuthenticateAsync(user, pass);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
+            watch.Stop();
             
-            Console.WriteLine($"[EMAIL SENT to {toEmail}]: {subject}");
+            Console.WriteLine($"[EMAIL SENT to {toEmail}]: {subject} (Took {watch.ElapsedMilliseconds}ms)");
         }
         catch (Exception ex)
         {

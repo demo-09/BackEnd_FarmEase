@@ -405,22 +405,31 @@ public class OrderService : IOrderService
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
-        return orders.Select(o => new OrderDto
+        var userIds = orders.Select(o => o.UserId).Distinct().ToList();
+        var users = await _context.Users.Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id);
+
+        return orders.Select(o => 
         {
-            Id = o.Id,
-            TotalAmount = o.TotalAmount,
-            OrderDate = o.OrderDate,
-            Status = o.Status,
-            Items = o.Items.Select(i => new OrderItemDto
+            var user = users.GetValueOrDefault(o.UserId);
+            return new OrderDto
             {
-                Id = i.Id,
-                ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                Price = i.Price,
-                Quantity = i.Quantity,
-                ImageUrl = i.ImageUrl,
-                ProductType = i.ProductType
-            }).ToList()
+                Id = o.Id,
+                TotalAmount = o.TotalAmount,
+                OrderDate = o.OrderDate,
+                Status = o.Status,
+                RequesterName = user?.FullName,
+                RequesterEmail = user?.Email,
+                Items = o.Items.Select(i => new OrderItemDto
+                {
+                    Id = i.Id,
+                    ProductId = i.ProductId,
+                    ProductName = i.ProductName,
+                    Price = i.Price,
+                    Quantity = i.Quantity,
+                    ImageUrl = i.ImageUrl,
+                    ProductType = i.ProductType
+                }).ToList()
+            };
         });
     }
 

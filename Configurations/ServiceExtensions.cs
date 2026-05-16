@@ -208,7 +208,7 @@ public static class ServiceExtensions
         services.AddScoped<IWishlistService, WishlistService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IMessagesService, MessagesService>();
-        services.AddScoped<INotificationService, NotificationService>();
+        services.AddSingleton<INotificationService, NotificationService>();
         services.AddScoped<IActivityService, ActivityService>();
         services.AddScoped<ICloudinaryService, CloudinaryService>();
 

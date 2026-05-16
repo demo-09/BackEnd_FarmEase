@@ -134,9 +134,9 @@ public class AuthService : IAuthService
 
         _otpStore[dto.Email] = code;
 
-        // OTP EXPIRY (5 MINUTES)
+        // OTP EXPIRY (15 MINUTES)
         _otpExpiryStore[dto.Email] =
-            DateTime.UtcNow.AddMinutes(5);
+            DateTime.UtcNow.AddMinutes(15);
 
         try
         {
@@ -207,11 +207,22 @@ public class AuthService : IAuthService
 
 </div>";
 
-                await _notificationService.SendEmailAsync(
-                    dto.Email,
-                    "Verify Your FarmEase Account ??",
-                    body
-                );
+                // FIRE AND FORGET (Non-blocking)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _notificationService.SendEmailAsync(
+                            dto.Email,
+                            "Verify Your FarmEase Account ??",
+                            body
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[BG EMAIL ERROR]: {ex.Message}");
+                    }
+                });
 
                 Console.WriteLine($"REGISTER OTP: {code}");
             }
@@ -586,8 +597,9 @@ public class AuthService : IAuthService
 
         _otpStore[dto.EmailOrPhone] = code;
 
+        // OTP EXPIRY (15 MINUTES)
         _otpExpiryStore[dto.EmailOrPhone] =
-            DateTime.UtcNow.AddMinutes(5);
+            DateTime.UtcNow.AddMinutes(15);
 
         try
         {
@@ -630,11 +642,22 @@ public class AuthService : IAuthService
 
 </div>";
 
-                await _notificationService.SendEmailAsync(
-                    dto.EmailOrPhone,
-                    "FarmEase Login OTP ??",
-                    body
-                );
+                // FIRE AND FORGET (Non-blocking)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _notificationService.SendEmailAsync(
+                            dto.EmailOrPhone,
+                            "FarmEase Login OTP ??",
+                            body
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[BG EMAIL ERROR]: {ex.Message}");
+                    }
+                });
 
                 Console.WriteLine($"LOGIN OTP: {code}");
             }
