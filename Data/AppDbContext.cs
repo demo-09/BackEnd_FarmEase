@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
     public DbSet<Activity> Activities { get; set; } = null!;
     public DbSet<AgriItem> AgriItems { get; set; } = null!;
+    public DbSet<Review> Reviews { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
