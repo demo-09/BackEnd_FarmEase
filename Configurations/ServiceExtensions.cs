@@ -262,7 +262,8 @@ public static class ServiceExtensions
                     .WithOrigins(
                         "http://localhost:4200",
                         "https://front-end-farm-ease.vercel.app",
-                        "https://backend-farmease-1.onrender.com"
+                        "https://backend-farmease-1.onrender.com",
+                    "https://farmease-24.netlify.app"
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod()
