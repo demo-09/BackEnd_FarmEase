@@ -26,11 +26,11 @@ public class NotificationService : INotificationService
     public async Task SendEmailAsync(string toEmail, string subject, string body)
     {
         // Prioritize .env variables, fallback to appsettings Smtp section
-        var host =process.env.SMTP_HOST ?? _config["SMTP_HOST"] ?? _config["Smtp:Host"];
-        var port =process.env.SMTP_PORT ?? _config["SMTP_PORT"] ?? _config["Smtp:Port"] ?? "587";
-        var user =process.env.SMTP_USER ?? _config["SMTP_USER"] ?? _config["Smtp:Username"];
-        var pass =process.env.SMTP_PASS ?? _config["SMTP_PASS"] ?? _config["Smtp:Password"];
-        var from =process.env.SMTP_FROM ?? _config["SMTP_FROM"] ?? _config["Smtp:FromEmail"];
+        var host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _config["SMTP_HOST"] ?? _config["Smtp:Host"];
+        var port = Environment.GetEnvironmentVariable("SMTP_PORT") ?? _config["SMTP_PORT"] ?? _config["Smtp:Port"] ?? "587";
+        var user = Environment.GetEnvironmentVariable("SMTP_USER") ?? _config["SMTP_USER"] ?? _config["Smtp:Username"];
+        var pass = Environment.GetEnvironmentVariable("SMTP_PASS") ?? _config["SMTP_PASS"] ?? _config["Smtp:Password"];
+        var from = Environment.GetEnvironmentVariable("SMTP_FROM") ?? _config["SMTP_FROM"] ?? _config["Smtp:FromEmail"];
 
         if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
         {

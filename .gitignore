@@ -3,8 +3,7 @@ bin/
 obj/
 node_modules/
 *.user
-*.suob i n / 
- 
- o b j / 
- 
- .env
+*.su
+bin/
+obj/
+.env
