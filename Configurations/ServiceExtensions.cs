@@ -22,7 +22,8 @@ public static class ServiceExtensions
         this IServiceCollection services,
         IConfiguration config)
     {
-        var connStr = config.GetConnectionString("DefaultConnection");
+        var connStr = Environment.GetEnvironmentVariable("CONNECTION_STRING")
+            ?? config.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrEmpty(connStr))
         {

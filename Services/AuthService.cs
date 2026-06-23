@@ -140,6 +140,7 @@ public class AuthService : IAuthService
 
         try
         {
+            var frontendUrl = (Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://farmease-24.netlify.app").TrimEnd('/');
             if (dto.Email.Contains("@"))
             {
                 var body = $@"
@@ -147,14 +148,14 @@ public class AuthService : IAuthService
 
     <div style='background: #16a34a; padding: 30px; text-align: center;'>
         <h1 style='color: white; margin: 0; font-size: 26px;'>
-            FarmEase OTP Verification ??
+            FarmEase OTP Verification 🟢
         </h1>
     </div>
 
     <div style='padding: 30px; line-height: 1.6; color: #333;'>
 
         <p style='font-size: 18px;'>
-            Hello {dto.FullName} ?????
+            Hello {dto.FullName} 👋
         </p>
 
         <p>
@@ -175,12 +176,12 @@ public class AuthService : IAuthService
         </p>
 
         <p style='color: #ef4444;'>
-            ?? Never share this OTP with anyone.
+            ⚠️ Never share this OTP with anyone.
         </p>
 
         <div style='text-align: center; margin-top: 35px;'>
 
-            <a href='https://front-end-farm-ease.vercel.app/#/login'
+            <a href='{frontendUrl}/#/login'
                style='background: #16a34a;
                       color: white;
                       padding: 14px 30px;
