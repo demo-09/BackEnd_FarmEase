@@ -44,14 +44,3 @@ public class AuthResponseDto
     public required string JoinedDate { get; set; }
 }
 
-public class InitiateLoginDto
-{
-    public required string EmailOrPhone { get; set; }
-    public required string Password { get; set; }
-}
-
-public class VerifyOtpDto
-{
-    public required string EmailOrPhone { get; set; }
-    public required string OtpCode { get; set; }
-}

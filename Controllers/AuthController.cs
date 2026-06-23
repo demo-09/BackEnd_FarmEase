@@ -27,24 +27,6 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("initiate-register")]
-    [AllowAnonymous]
-    public async Task<IActionResult> InitiateRegister([FromBody] RegisterDto dto)
-    {
-        var code = await _authService.InitiateRegistrationAsync(dto);
-        if (code == null) return BadRequest(new { message = "Email already in use." });
-        return Ok(new { message = "Verification code sent to your email." });
-    }
-
-    [HttpPost("verify-otp-register")]
-    [AllowAnonymous]
-    public async Task<IActionResult> VerifyOtpRegister([FromBody] VerifyOtpDto dto)
-    {
-        var result = await _authService.VerifyOtpRegistrationAsync(dto);
-        if (result == null) return BadRequest(new { message = "Invalid OTP or session expired." });
-
-        return Ok(result);
-    }
 
     [HttpPost("login")]
     [AllowAnonymous]
@@ -66,22 +48,4 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("initiate-login")]
-    [AllowAnonymous]
-    public async Task<IActionResult> InitiateLogin([FromBody] InitiateLoginDto dto)
-    {
-        var code = await _authService.InitiateLoginAsync(dto);
-        if (code == null) return Unauthorized(new { message = "Invalid credentials." });
-        return Ok(new { message = "OTP generated successfully", mockOtp = code });
-    }
-
-    [HttpPost("verify-otp-login")]
-    [AllowAnonymous]
-    public async Task<IActionResult> VerifyOtpLogin([FromBody] VerifyOtpDto dto)
-    {
-        var result = await _authService.VerifyOtpLoginAsync(dto);
-        if (result == null) return Unauthorized(new { message = "Invalid OTP." });
-
-        return Ok(result);
-    }
 }
